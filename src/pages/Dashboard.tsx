@@ -34,7 +34,7 @@ const Dashboard = () => {
     // Load user's bookings
     const userBookings = mockBookings.filter(booking => booking.userId === user?.id);
     dispatch(setBookings(userBookings));
-  }, [isAuthenticated, navigate, dispatch, user]);
+  }, [isAuthenticated, user?.id]);
 
   const getStatusIcon = (status: string) => {
     switch (status) {
