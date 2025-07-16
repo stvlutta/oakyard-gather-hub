@@ -1,11 +1,8 @@
-import { Space } from '../store/slices/spacesSlice';
-import { Booking } from '../store/slices/bookingsSlice';
-import { User } from '../store/slices/authSlice';
 import meetingRoomImg from '../assets/space-meeting-room.jpg';
 import creativeStudioImg from '../assets/space-creative-studio.jpg';
 import eventHallImg from '../assets/space-event-hall.jpg';
 
-export const mockUsers: User[] = [
+export const mockUsers = [
   {
     id: '1',
     email: 'admin@oakyard.com',
@@ -29,7 +26,7 @@ export const mockUsers: User[] = [
   },
 ];
 
-export const mockSpaces: Space[] = [
+export const mockSpaces = [
   {
     id: '1',
     title: 'Modern Conference Room',
@@ -92,7 +89,7 @@ export const mockSpaces: Space[] = [
   },
 ];
 
-export const mockBookings: Booking[] = [
+export const mockBookings = [
   {
     id: '1',
     spaceId: '1',
@@ -147,7 +144,7 @@ export const mockChatMessages = {
       userAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=John',
       message: 'Hey everyone! Looking forward to our meeting here tomorrow.',
       timestamp: '2024-01-14T15:30:00Z',
-      type: 'text' as const,
+      type: 'text',
     },
     {
       id: '2',
@@ -157,7 +154,7 @@ export const mockChatMessages = {
       userAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah',
       message: 'Great choice of venue! The projector setup looks perfect for our presentation.',
       timestamp: '2024-01-14T16:15:00Z',
-      type: 'text' as const,
+      type: 'text',
     },
   ],
   '2': [
@@ -169,7 +166,7 @@ export const mockChatMessages = {
       userAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah',
       message: 'This studio has amazing natural light! Perfect for our photography workshop.',
       timestamp: '2024-01-14T12:00:00Z',
-      type: 'text' as const,
+      type: 'text',
     },
   ],
 };

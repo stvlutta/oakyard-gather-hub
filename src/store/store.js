@@ -12,6 +12,3 @@ export const store = configureStore({
     chat: chatSlice,
   },
 });
-
-export type RootState = ReturnType<typeof store.getState>;
-export type AppDispatch = typeof store.dispatch;

@@ -1,15 +1,14 @@
 
 import { useSelector, useDispatch } from 'react-redux';
 import { useCallback } from 'react';
-import { RootState } from '../store/store';
-import { loginSuccess, logout, User } from '../store/slices/authSlice';
+import { loginSuccess, logout } from '../store/slices/authSlice';
 import { mockUsers } from '../data/mockData';
 
 export const useAuth = () => {
   const dispatch = useDispatch();
-  const { user, isAuthenticated, loading } = useSelector((state: RootState) => state.auth);
+  const { user, isAuthenticated, loading } = useSelector((state) => state.auth);
 
-  const login = async (email: string, password: string) => {
+  const login = async (email, password) => {
     // Mock login logic
     const mockUser = mockUsers.find(u => u.email === email);
     if (mockUser && password === 'password') {
@@ -24,7 +23,7 @@ export const useAuth = () => {
 
   const loginWithGoogle = async () => {
     // Mock Google login
-    const mockUser: User = {
+    const mockUser = {
       id: 'google-' + Date.now(),
       email: 'user@gmail.com',
       name: 'Google User',
@@ -38,9 +37,9 @@ export const useAuth = () => {
     return { success: true };
   };
 
-  const register = async (email: string, password: string, name: string) => {
+  const register = async (email, password, name) => {
     // Mock registration logic
-    const newUser: User = {
+    const newUser = {
       id: 'user-' + Date.now(),
       email,
       name,
