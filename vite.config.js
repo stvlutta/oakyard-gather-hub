@@ -19,4 +19,13 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  // Force JavaScript-only processing
+  esbuild: {
+    jsx: 'automatic',
+    jsxDev: mode === 'development',
+  },
+  // Disable TypeScript checking completely
+  build: {
+    target: 'es2015',
+  },
 }));
