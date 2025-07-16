@@ -19,6 +19,8 @@ import AdminPanel from "./pages/admin/AdminPanel";
 import About from "./pages/About";
 import HowItWorks from "./pages/HowItWorks";
 import Profile from "./pages/Profile";
+import VirtualMeetings from "./pages/VirtualMeetings";
+import ChatRoom from "./pages/ChatRoom";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -45,6 +47,8 @@ const AppContent = () => {
           <Route path="/about" element={<About />} />
           <Route path="/how-it-works" element={<HowItWorks />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/virtual-meetings" element={<VirtualMeetings />} />
+          <Route path="/chat-room/:roomId" element={<ChatRoom />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

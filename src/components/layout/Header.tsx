@@ -10,7 +10,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Menu, MapPin, User, Settings, LogOut, Calendar, MessageSquare } from 'lucide-react';
+import { Menu, MapPin, User, Settings, LogOut, Calendar, MessageSquare, Video } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 
 export const Header = () => {
@@ -20,6 +20,7 @@ export const Header = () => {
 
   const navigation = [
     { name: 'Spaces', href: '/' },
+    { name: 'Virtual Meetings', href: '/virtual-meetings' },
     { name: 'How it Works', href: '/how-it-works' },
     { name: 'About', href: '/about' },
   ];
@@ -75,6 +76,12 @@ export const Header = () => {
           <div className="hidden md:flex items-center space-x-4">
             {isAuthenticated ? (
               <div className="flex items-center space-x-4">
+                <Button variant="outline" size="sm" asChild>
+                  <Link to="/virtual-meetings">
+                    <Video className="h-4 w-4 mr-2" />
+                    Meetings
+                  </Link>
+                </Button>
                 <Button variant="outline" size="sm" asChild>
                   <Link to="/dashboard">
                     <Calendar className="h-4 w-4 mr-2" />
@@ -171,6 +178,12 @@ export const Header = () => {
                     </div>
                     
                     <div className="space-y-2">
+                      <Button variant="outline" className="w-full justify-start" asChild>
+                        <Link to="/virtual-meetings" onClick={() => setIsOpen(false)}>
+                          <Video className="mr-2 h-4 w-4" />
+                          Virtual Meetings
+                        </Link>
+                      </Button>
                       <Button variant="outline" className="w-full justify-start" asChild>
                         <Link to="/dashboard" onClick={() => setIsOpen(false)}>
                           <Calendar className="mr-2 h-4 w-4" />
