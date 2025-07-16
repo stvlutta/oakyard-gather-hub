@@ -1,0 +1,175 @@
+import { Space } from '../store/slices/spacesSlice';
+import { Booking } from '../store/slices/bookingsSlice';
+import { User } from '../store/slices/authSlice';
+import meetingRoomImg from '../assets/space-meeting-room.jpg';
+import creativeStudioImg from '../assets/space-creative-studio.jpg';
+import eventHallImg from '../assets/space-event-hall.jpg';
+
+export const mockUsers: User[] = [
+  {
+    id: '1',
+    email: 'admin@oakyard.com',
+    name: 'Admin User',
+    role: 'admin',
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Admin',
+  },
+  {
+    id: '2',
+    email: 'john@example.com',
+    name: 'John Doe',
+    role: 'client',
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=John',
+  },
+  {
+    id: '3',
+    email: 'sarah@example.com',
+    name: 'Sarah Johnson',
+    role: 'client',
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah',
+  },
+];
+
+export const mockSpaces: Space[] = [
+  {
+    id: '1',
+    title: 'Modern Conference Room',
+    description: 'A sleek, modern conference room perfect for business meetings and presentations. Features state-of-the-art AV equipment, comfortable seating for up to 12 people, and floor-to-ceiling windows with city views.',
+    location: 'Downtown Business District, 123 Main St',
+    hourlyRate: 75,
+    images: [meetingRoomImg, meetingRoomImg],
+    amenities: ['WiFi', 'Projector', 'Whiteboard', 'Coffee Machine', 'Air Conditioning'],
+    capacity: 12,
+    ownerId: '2',
+    ownerName: 'John Doe',
+    rating: 4.8,
+    reviews: 24,
+    category: 'meeting-room',
+    availability: {
+      '2024-01-15': { available: true, bookedSlots: ['09:00-11:00'] },
+      '2024-01-16': { available: true, bookedSlots: [] },
+      '2024-01-17': { available: true, bookedSlots: ['14:00-17:00'] },
+    },
+  },
+  {
+    id: '2',
+    title: 'Creative Art Studio',
+    description: 'Inspiring creative space with natural light and artistic atmosphere. Perfect for workshops, art classes, photography sessions, and creative collaborations. Includes art supplies and flexible workspace.',
+    location: 'Arts Quarter, 456 Creative Ave',
+    hourlyRate: 50,
+    images: [creativeStudioImg, creativeStudioImg],
+    amenities: ['Natural Light', 'Art Supplies', 'WiFi', 'Storage', 'Easels'],
+    capacity: 8,
+    ownerId: '3',
+    ownerName: 'Sarah Johnson',
+    rating: 4.9,
+    reviews: 18,
+    category: 'creative-studio',
+    availability: {
+      '2024-01-15': { available: true, bookedSlots: [] },
+      '2024-01-16': { available: true, bookedSlots: ['10:00-13:00'] },
+      '2024-01-17': { available: true, bookedSlots: [] },
+    },
+  },
+  {
+    id: '3',
+    title: 'Elegant Event Hall',
+    description: 'Sophisticated event space ideal for corporate gatherings, celebrations, and special occasions. Features beautiful lighting, catering facilities, and can accommodate large groups with style.',
+    location: 'Event Center, 789 Celebration Blvd',
+    hourlyRate: 150,
+    images: [eventHallImg, eventHallImg],
+    amenities: ['Catering Kitchen', 'Sound System', 'Stage', 'Bar Area', 'Parking'],
+    capacity: 100,
+    ownerId: '2',
+    ownerName: 'John Doe',
+    rating: 4.7,
+    reviews: 31,
+    category: 'event-hall',
+    availability: {
+      '2024-01-15': { available: true, bookedSlots: [] },
+      '2024-01-16': { available: false, bookedSlots: ['18:00-23:00'] },
+      '2024-01-17': { available: true, bookedSlots: [] },
+    },
+  },
+];
+
+export const mockBookings: Booking[] = [
+  {
+    id: '1',
+    spaceId: '1',
+    spaceName: 'Modern Conference Room',
+    userId: '2',
+    userName: 'John Doe',
+    startTime: '2024-01-15T09:00:00',
+    endTime: '2024-01-15T11:00:00',
+    totalHours: 2,
+    totalCost: 150,
+    status: 'confirmed',
+    paymentStatus: 'paid',
+    invoice: {
+      id: 'INV-001',
+      subtotal: 150,
+      tax: 15,
+      total: 165,
+      issuedAt: '2024-01-10T10:00:00Z',
+    },
+    createdAt: '2024-01-10T10:00:00Z',
+  },
+  {
+    id: '2',
+    spaceId: '2',
+    spaceName: 'Creative Art Studio',
+    userId: '3',
+    userName: 'Sarah Johnson',
+    startTime: '2024-01-16T10:00:00',
+    endTime: '2024-01-16T13:00:00',
+    totalHours: 3,
+    totalCost: 150,
+    status: 'pending',
+    paymentStatus: 'pending',
+    invoice: {
+      id: 'INV-002',
+      subtotal: 150,
+      tax: 15,
+      total: 165,
+      issuedAt: '2024-01-12T14:00:00Z',
+    },
+    createdAt: '2024-01-12T14:00:00Z',
+  },
+];
+
+export const mockChatMessages = {
+  '1': [
+    {
+      id: '1',
+      spaceId: '1',
+      userId: '2',
+      userName: 'John Doe',
+      userAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=John',
+      message: 'Hey everyone! Looking forward to our meeting here tomorrow.',
+      timestamp: '2024-01-14T15:30:00Z',
+      type: 'text' as const,
+    },
+    {
+      id: '2',
+      spaceId: '1',
+      userId: '3',
+      userName: 'Sarah Johnson',
+      userAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah',
+      message: 'Great choice of venue! The projector setup looks perfect for our presentation.',
+      timestamp: '2024-01-14T16:15:00Z',
+      type: 'text' as const,
+    },
+  ],
+  '2': [
+    {
+      id: '3',
+      spaceId: '2',
+      userId: '3',
+      userName: 'Sarah Johnson',
+      userAvatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah',
+      message: 'This studio has amazing natural light! Perfect for our photography workshop.',
+      timestamp: '2024-01-14T12:00:00Z',
+      type: 'text' as const,
+    },
+  ],
+};
