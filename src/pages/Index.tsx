@@ -147,20 +147,21 @@ const Index = () => {
     <div className="min-h-screen">
       {/* Hero Section */}
       <section className="relative py-20 lg:py-32 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-hero opacity-90"></div>
+        <div className="absolute inset-0 bg-gradient-hero opacity-95"></div>
         <div 
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat blur-sm scale-105"
           style={{ backgroundImage: `url(${heroImage})` }}
         ></div>
+        <div className="absolute inset-0 bg-black/40"></div>
         
         <div className="relative container mx-auto px-4 text-center">
           <div className="max-w-4xl mx-auto">
-            <h1 className="text-4xl md:text-6xl font-bold text-foreground mb-6">
+            <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 drop-shadow-lg">
               Find Your Perfect
               <span className="bg-gradient-accent bg-clip-text text-transparent"> Space </span>
               to Connect
             </h1>
-            <p className="text-xl md:text-2xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+            <p className="text-xl md:text-2xl text-white/90 mb-8 max-w-2xl mx-auto drop-shadow-md">
               Discover unique venues for meetings, collaboration, and celebrations. 
               Connect with like-minded people in inspiring spaces.
             </p>
