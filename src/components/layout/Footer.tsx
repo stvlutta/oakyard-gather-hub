@@ -61,7 +61,7 @@ export const Footer = () => {
               </div>
               <div className="flex items-center space-x-2 text-sm">
                 <Phone className="h-4 w-4" />
-                <span>+1 (555) 123-4567</span>
+                <span>+254 711 110 707</span>
               </div>
             </div>
           </div>
@@ -152,7 +152,7 @@ export const Footer = () => {
             </div>
             
             <div className="text-sm text-primary-foreground/60">
-              © 2024 Oakyard Community. All rights reserved.
+              © 2025 Oakyard Community. All rights reserved.
             </div>
           </div>
         </div>
