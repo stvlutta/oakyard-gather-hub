@@ -1,4 +1,6 @@
+
 import { useSelector, useDispatch } from 'react-redux';
+import { useCallback } from 'react';
 import { RootState } from '../store/store';
 import { loginSuccess, logout, User } from '../store/slices/authSlice';
 import { mockUsers } from '../data/mockData';
@@ -58,7 +60,7 @@ export const useAuth = () => {
     localStorage.removeItem('user');
   };
 
-  const initializeAuth = () => {
+  const initializeAuth = useCallback(() => {
     const token = localStorage.getItem('auth-token');
     const userStr = localStorage.getItem('user');
     if (token && userStr) {
@@ -70,7 +72,7 @@ export const useAuth = () => {
         localStorage.removeItem('user');
       }
     }
-  };
+  }, [dispatch]);
 
   return {
     user,
