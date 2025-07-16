@@ -33,7 +33,7 @@ const SpaceDetail = () => {
       const space = mockSpaces.find(s => s.id === id);
       dispatch(setCurrentSpace(space || null));
     }
-  }, [id, dispatch]);
+  }, [id]);
 
   if (!currentSpace) {
     return (
