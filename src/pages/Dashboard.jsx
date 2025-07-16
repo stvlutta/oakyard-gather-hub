@@ -1,7 +1,7 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { RootState } from '../store/store';
+import { useAuth } from '../contexts/AuthContext';
 import { setBookings } from '../store/slices/bookingsSlice';
 import { mockBookings } from '../data/mockData';
 import { Button } from '@/components/ui/button';
@@ -22,21 +22,36 @@ import {
 const Dashboard = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
-  const { bookings } = useSelector((state: RootState) => state.bookings);
+  const { user, isAuthenticated, loading } = useAuth();
+  const { bookings } = useSelector((state) => state.bookings);
+  const hasNavigated = useRef(false);
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (!loading && !isAuthenticated && !hasNavigated.current) {
+      hasNavigated.current = true;
       navigate('/login');
       return;
     }
 
-    // Load user's bookings
-    const userBookings = mockBookings.filter(booking => booking.userId === user?.id);
-    dispatch(setBookings(userBookings));
-  }, [isAuthenticated, user?.id]);
+    if (isAuthenticated && user) {
+      // Load user's bookings
+      const userBookings = mockBookings.filter(booking => booking.userId === user.id);
+      dispatch(setBookings(userBookings));
+    }
+  }, [isAuthenticated, loading, user?.id, navigate, dispatch]);
 
-  const getStatusIcon = (status: string) => {
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  const getStatusIcon = (status) => {
     switch (status) {
       case 'confirmed':
         return <CheckCircle className="h-4 w-4 text-success" />;
@@ -49,7 +64,7 @@ const Dashboard = () => {
     }
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = (status) => {
     switch (status) {
       case 'confirmed':
         return 'bg-success text-success-foreground';
@@ -70,7 +85,7 @@ const Dashboard = () => {
     new Date(booking.startTime) <= new Date() || booking.status === 'cancelled'
   );
 
-  const BookingCard = ({ booking }: { booking: any }) => (
+  const BookingCard = ({ booking }) => (
     <Card className="hover:shadow-md transition-shadow">
       <CardContent className="p-6">
         <div className="flex items-start justify-between mb-4">

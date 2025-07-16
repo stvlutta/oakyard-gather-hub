@@ -1,8 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
-import { RootState } from '../../store/store';
-import { useAuth } from '../../hooks/useAuth';
+import { useAuth } from '../../contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,12 +8,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { MapPin, Mail, Lock, User, Chrome, AlertCircle, CheckCircle } from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 const Register = () => {
   const navigate = useNavigate();
-  const { isAuthenticated } = useSelector((state: RootState) => state.auth);
-  const { register, loginWithGoogle } = useAuth();
+  const { isAuthenticated, register, loading: authLoading } = useAuth();
+  const hasNavigated = useRef(false);
   
   const [formData, setFormData] = useState({
     name: '',
@@ -27,19 +25,20 @@ const Register = () => {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && !authLoading && !hasNavigated.current) {
+      hasNavigated.current = true;
       navigate('/dashboard');
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, authLoading, navigate]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
     });
   };
 
-  const handleRegister = async (e: React.FormEvent) => {
+  const handleRegister = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
@@ -57,7 +56,11 @@ const Register = () => {
     }
 
     try {
-      const result = await register(formData.email, formData.password, formData.name);
+      const result = await register({
+        email: formData.email,
+        password: formData.password,
+        name: formData.name,
+      });
       if (result.success) {
         toast({
           title: "Welcome to Oakyard!",
@@ -90,7 +93,7 @@ const Register = () => {
     }
   };
 
-  const passwordStrength = (password: string) => {
+  const passwordStrength = (password) => {
     let strength = 0;
     if (password.length >= 6) strength++;
     if (password.match(/[a-z]/) && password.match(/[A-Z]/)) strength++;
@@ -99,7 +102,7 @@ const Register = () => {
     return strength;
   };
 
-  const getPasswordStrengthColor = (strength: number) => {
+  const getPasswordStrengthColor = (strength) => {
     switch (strength) {
       case 0:
       case 1:
@@ -115,7 +118,7 @@ const Register = () => {
     }
   };
 
-  const getPasswordStrengthText = (strength: number) => {
+  const getPasswordStrengthText = (strength) => {
     switch (strength) {
       case 0:
       case 1:

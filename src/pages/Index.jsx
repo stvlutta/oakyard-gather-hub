@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { RootState } from '../store/store';
 import { setSpaces, setSearchQuery, setFilters } from '../store/slices/spacesSlice';
 import { mockSpaces } from '../data/mockData';
 import { Button } from '@/components/ui/button';
@@ -31,7 +30,7 @@ import heroImage from '../assets/hero-community.jpg';
 
 const Index = () => {
   const dispatch = useDispatch();
-  const { spaces, searchQuery, filters } = useSelector((state: RootState) => state.spaces);
+  const { spaces, searchQuery, filters } = useSelector((state) => state.spaces);
   const [filteredSpaces, setFilteredSpaces] = useState(spaces);
 
   useEffect(() => {
@@ -64,7 +63,7 @@ const Index = () => {
     setFilteredSpaces(filtered);
   }, [spaces, searchQuery, filters]);
 
-  const SpaceCard = ({ space }: { space: any }) => (
+  const SpaceCard = ({ space }) => (
     <Card className="group hover:shadow-lg transition-all duration-300 hover:-translate-y-1">
       <CardContent className="p-0">
         <div className="relative">
@@ -297,9 +296,11 @@ const Index = () => {
           <p className="text-xl text-primary-foreground/80 mb-8 max-w-2xl mx-auto">
             Join our community of space owners and start earning by sharing your unique venue.
           </p>
-          <Button variant="secondary" size="lg">
-            List Your Space
-            <ArrowRight className="h-5 w-5 ml-2" />
+          <Button variant="secondary" size="lg" asChild>
+            <Link to="/list-space">
+              List Your Space
+              <ArrowRight className="h-5 w-5 ml-2" />
+            </Link>
           </Button>
         </div>
       </section>

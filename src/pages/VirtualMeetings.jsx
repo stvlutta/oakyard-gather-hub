@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
-import { RootState } from '../store/store';
+import { useAuth } from '../contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -20,28 +19,16 @@ import {
   Filter
 } from 'lucide-react';
 
-interface MeetingRoom {
-  id: string;
-  name: string;
-  description: string;
-  host: string;
-  participants: number;
-  maxParticipants: number;
-  isActive: boolean;
-  createdAt: Date;
-  scheduledFor?: Date;
-}
-
 const VirtualMeetings = () => {
   const navigate = useNavigate();
-  const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
+  const { user, isAuthenticated } = useAuth();
   const [roomName, setRoomName] = useState('');
   const [roomDescription, setRoomDescription] = useState('');
   const [joinRoomId, setJoinRoomId] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
 
   // Mock data - replace with actual API calls
-  const [rooms, setRooms] = useState<MeetingRoom[]>([
+  const [rooms, setRooms] = useState([
     {
       id: 'room-123',
       name: 'Weekly Team Standup',
@@ -79,7 +66,7 @@ const VirtualMeetings = () => {
   const createRoom = () => {
     if (!roomName.trim() || !isAuthenticated) return;
 
-    const newRoom: MeetingRoom = {
+    const newRoom = {
       id: `room-${Date.now()}`,
       name: roomName.trim(),
       description: roomDescription.trim(),
@@ -98,7 +85,7 @@ const VirtualMeetings = () => {
     navigate(`/chat-room/${newRoom.id}`);
   };
 
-  const joinRoom = (roomId?: string) => {
+  const joinRoom = (roomId) => {
     const targetRoomId = roomId || joinRoomId;
     if (!targetRoomId.trim()) return;
 
@@ -112,14 +99,14 @@ const VirtualMeetings = () => {
     room.host.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const formatTime = (date: Date) => {
+  const formatTime = (date) => {
     return date.toLocaleTimeString('en-US', { 
       hour: '2-digit', 
       minute: '2-digit' 
     });
   };
 
-  const formatDate = (date: Date) => {
+  const formatDate = (date) => {
     return date.toLocaleDateString('en-US', { 
       month: 'short', 
       day: 'numeric' 

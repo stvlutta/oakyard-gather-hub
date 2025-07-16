@@ -11,7 +11,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Menu, MapPin, User, Settings, LogOut, Calendar, MessageSquare, Video } from 'lucide-react';
-import { useAuth } from '../../hooks/useAuth';
+import { useAuth } from '../../contexts/AuthContext';
 
 export const Header = () => {
   const { user, isAuthenticated, signOut } = useAuth();
@@ -25,12 +25,12 @@ export const Header = () => {
     { name: 'About', href: '/about' },
   ];
 
-  const isActive = (path: string) => {
+  const isActive = (path) => {
     if (path === '/') return location.pathname === '/';
     return location.pathname.startsWith(path);
   };
 
-  const NavLinks = ({ mobile = false }: { mobile?: boolean }) => (
+  const NavLinks = ({ mobile = false }) => (
     <>
       {navigation.map((item) => (
         <Link

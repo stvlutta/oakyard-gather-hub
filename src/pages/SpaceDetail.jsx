@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { RootState } from '../store/store';
+import { useAuth } from '../contexts/AuthContext';
 import { setCurrentSpace } from '../store/slices/spacesSlice';
 import { mockSpaces } from '../data/mockData';
 import { Button } from '@/components/ui/button';
@@ -23,10 +23,10 @@ import {
 import { toast } from '@/hooks/use-toast';
 
 const SpaceDetail = () => {
-  const { id } = useParams<{ id: string }>();
+  const { id } = useParams();
   const dispatch = useDispatch();
-  const currentSpace = useSelector((state: RootState) => state.spaces.currentSpace);
-  const { isAuthenticated } = useSelector((state: RootState) => state.auth);
+  const currentSpace = useSelector((state) => state.spaces.currentSpace);
+  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
     if (id) {
@@ -59,7 +59,7 @@ const SpaceDetail = () => {
     }
   };
 
-  const amenityIcons: { [key: string]: any } = {
+  const amenityIcons = {
     'WiFi': Wifi,
     'Coffee Machine': Coffee,
     'Projector': Monitor,
@@ -190,7 +190,7 @@ const SpaceDetail = () => {
                 <Separator />
 
                 <Button variant="outline" className="w-full" asChild>
-                  <Link to={`/chat/${currentSpace.id}`}>
+                  <Link to={`/chat-room/${currentSpace.id}`}>
                     <MessageSquare className="h-4 w-4 mr-2" />
                     Join Community Chat
                   </Link>

@@ -1,6 +1,7 @@
 import { ArrowRight, Users, MapPin, Clock, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Link } from 'react-router-dom';
 
 const About = () => {
   return (
@@ -137,8 +138,10 @@ const About = () => {
             <Button variant="secondary" size="lg">
               Find a Space
             </Button>
-            <Button variant="outline" size="lg" className="bg-transparent border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary">
-              List Your Space
+            <Button variant="outline" size="lg" className="bg-transparent border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary" asChild>
+              <Link to="/list-space">
+                List Your Space
+              </Link>
             </Button>
           </div>
         </div>

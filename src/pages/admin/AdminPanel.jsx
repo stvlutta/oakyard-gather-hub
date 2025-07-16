@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { RootState } from '../../store/store';
+import { useAuth } from '../../contexts/AuthContext';
 import { setSpaces, addSpace, updateSpace, deleteSpace } from '../../store/slices/spacesSlice';
 import { setBookings } from '../../store/slices/bookingsSlice';
 import { mockSpaces, mockBookings, mockUsers } from '../../data/mockData';
@@ -50,19 +50,19 @@ import { toast } from '@/hooks/use-toast';
 const AdminPanel = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
-  const { spaces } = useSelector((state: RootState) => state.spaces);
-  const { bookings } = useSelector((state: RootState) => state.bookings);
+  const { user, isAuthenticated } = useAuth();
+  const { spaces } = useSelector((state) => state.spaces);
+  const { bookings } = useSelector((state) => state.bookings);
 
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [editingSpace, setEditingSpace] = useState<any>(null);
+  const [editingSpace, setEditingSpace] = useState(null);
   const [newSpace, setNewSpace] = useState({
     title: '',
     description: '',
     location: '',
     hourlyRate: 0,
     capacity: 1,
-    category: 'meeting-room' as const,
+    category: 'meeting-room',
     amenities: '',
   });
 
@@ -115,7 +115,7 @@ const AdminPanel = () => {
     });
   };
 
-  const handleDeleteSpace = (spaceId: string) => {
+  const handleDeleteSpace = (spaceId) => {
     dispatch(deleteSpace(spaceId));
     toast({
       title: "Space deleted successfully!",
@@ -173,7 +173,7 @@ const AdminPanel = () => {
                   <Label htmlFor="category">Category</Label>
                   <Select 
                     value={newSpace.category} 
-                    onValueChange={(value: any) => setNewSpace({ ...newSpace, category: value })}
+                    onValueChange={(value) => setNewSpace({ ...newSpace, category: value })}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select category" />

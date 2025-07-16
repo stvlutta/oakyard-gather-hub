@@ -2,6 +2,7 @@ import { Search, Calendar, MapPin, CreditCard, Shield, Users, Star, ArrowRight }
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Link } from 'react-router-dom';
 
 const HowItWorks = () => {
   return (
@@ -206,9 +207,11 @@ const HowItWorks = () => {
               Explore Spaces
               <ArrowRight className="h-5 w-5 ml-2" />
             </Button>
-            <Button variant="outline" size="lg" className="bg-transparent border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary">
-              List Your Space
-              <ArrowRight className="h-5 w-5 ml-2" />
+            <Button variant="outline" size="lg" className="bg-transparent border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-primary" asChild>
+              <Link to="/list-space">
+                List Your Space
+                <ArrowRight className="h-5 w-5 ml-2" />
+              </Link>
             </Button>
           </div>
         </div>

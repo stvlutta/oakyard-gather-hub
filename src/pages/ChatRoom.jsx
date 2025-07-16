@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { RootState } from '../store/store';
+import { useAuth } from '../contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -32,36 +32,17 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
-interface Message {
-  id: string;
-  userId: string;
-  userName: string;
-  message: string;
-  timestamp: Date;
-  type: 'text' | 'system';
-}
-
-interface Participant {
-  id: string;
-  name: string;
-  avatar?: string;
-  isHost: boolean;
-  isMuted: boolean;
-  isVideoOn: boolean;
-  isOnline: boolean;
-}
-
 const ChatRoom = () => {
   const { roomId } = useParams();
   const navigate = useNavigate();
-  const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
-  const [messages, setMessages] = useState<Message[]>([]);
+  const { user, isAuthenticated } = useAuth();
+  const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
-  const [participants, setParticipants] = useState<Participant[]>([]);
+  const [participants, setParticipants] = useState([]);
   const [isVideoOn, setIsVideoOn] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [isInCall, setIsInCall] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef(null);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -70,7 +51,7 @@ const ChatRoom = () => {
     }
 
     // Mock room data - replace with actual API calls
-    const mockMessages: Message[] = [
+    const mockMessages = [
       {
         id: '1',
         userId: 'system',
@@ -97,7 +78,7 @@ const ChatRoom = () => {
       }
     ];
 
-    const mockParticipants: Participant[] = [
+    const mockParticipants = [
       {
         id: user?.id || 'current-user',
         name: user?.name || 'You',
@@ -136,7 +117,7 @@ const ChatRoom = () => {
   const sendMessage = () => {
     if (!newMessage.trim() || !user) return;
 
-    const message: Message = {
+    const message = {
       id: Date.now().toString(),
       userId: user.id,
       userName: user.name,
@@ -174,7 +155,7 @@ const ChatRoom = () => {
     // TODO: Leave video call
   };
 
-  const formatTime = (date: Date) => {
+  const formatTime = (date) => {
     return date.toLocaleTimeString('en-US', { 
       hour: '2-digit', 
       minute: '2-digit' 

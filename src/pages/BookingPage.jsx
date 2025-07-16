@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { RootState } from '../store/store';
+import { useAuth } from '../contexts/AuthContext';
 import { setCurrentSpace } from '../store/slices/spacesSlice';
 import { addBooking } from '../store/slices/bookingsSlice';
 import { mockSpaces } from '../data/mockData';
@@ -18,17 +18,17 @@ import 'react-calendar/dist/Calendar.css';
 import 'react-time-picker/dist/TimePicker.css';
 
 const BookingPage = () => {
-  const { spaceId } = useParams<{ spaceId: string }>();
+  const { spaceId } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const currentSpace = useSelector((state: RootState) => state.spaces.currentSpace);
-  const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
+  const currentSpace = useSelector((state) => state.spaces.currentSpace);
+  const { user, isAuthenticated } = useAuth();
 
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [startTime, setStartTime] = useState<string>('09:00');
-  const [endTime, setEndTime] = useState<string>('10:00');
-  const [totalHours, setTotalHours] = useState<number>(1);
-  const [totalCost, setTotalCost] = useState<number>(0);
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [startTime, setStartTime] = useState('09:00');
+  const [endTime, setEndTime] = useState('10:00');
+  const [totalHours, setTotalHours] = useState(1);
+  const [totalCost, setTotalCost] = useState(0);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -86,8 +86,8 @@ const BookingPage = () => {
       endTime: endDateTime.toISOString(),
       totalHours,
       totalCost,
-      status: 'pending' as const,
-      paymentStatus: 'pending' as const,
+      status: 'pending',
+      paymentStatus: 'pending',
       invoice: {
         id: `INV-${Date.now()}`,
         subtotal: totalCost,
@@ -170,7 +170,7 @@ const BookingPage = () => {
               <CardContent>
                 <div className="flex justify-center">
                   <Calendar
-                    onChange={(date) => setSelectedDate(date as Date)}
+                    onChange={(date) => setSelectedDate(date)}
                     value={selectedDate}
                     minDate={new Date()}
                     className="react-calendar"

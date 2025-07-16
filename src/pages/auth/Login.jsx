@@ -1,8 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
-import { RootState } from '../../store/store';
-import { useAuth } from '../../hooks/useAuth';
+import { useAuth } from '../../contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,12 +8,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { MapPin, Mail, Lock, Chrome, AlertCircle } from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 const Login = () => {
   const navigate = useNavigate();
-  const { isAuthenticated } = useSelector((state: RootState) => state.auth);
-  const { login, loginWithGoogle } = useAuth();
+  const { isAuthenticated, login, loading: authLoading } = useAuth();
+  const hasNavigated = useRef(false);
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -23,23 +21,20 @@ const Login = () => {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && !authLoading && !hasNavigated.current) {
+      hasNavigated.current = true;
       navigate('/dashboard');
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, authLoading, navigate]);
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
 
     try {
-      const result = await login(email, password);
+      const result = await login({ email, password });
       if (result.success) {
-        toast({
-          title: "Welcome back!",
-          description: "You've been successfully signed in.",
-        });
         navigate('/dashboard');
       } else {
         setError(result.error || 'Login failed');
@@ -54,14 +49,8 @@ const Login = () => {
   const handleGoogleLogin = async () => {
     setLoading(true);
     try {
-      const result = await loginWithGoogle();
-      if (result.success) {
-        toast({
-          title: "Welcome!",
-          description: "You've been successfully signed in with Google.",
-        });
-        navigate('/dashboard');
-      }
+      // Google login not implemented yet
+      setError('Google login not implemented yet');
     } catch (err) {
       setError('Google login failed');
     } finally {
@@ -105,7 +94,7 @@ const Login = () => {
               <AlertDescription>
                 <strong>Demo Credentials:</strong><br />
                 Email: admin@oakyard.com<br />
-                Password: password
+                Password: admin123
               </AlertDescription>
             </Alert>
 
