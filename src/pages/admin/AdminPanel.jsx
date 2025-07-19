@@ -45,7 +45,7 @@ import {
   DollarSign,
   TrendingUp
 } from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 const AdminPanel = () => {
   const navigate = useNavigate();
@@ -79,10 +79,7 @@ const AdminPanel = () => {
 
   const handleAddSpace = () => {
     if (!newSpace.title || !newSpace.description || !newSpace.location) {
-      toast({
-        title: "Please fill all required fields",
-        variant: "destructive",
-      });
+      toast.error("Please fill all required fields");
       return;
     }
 
@@ -110,16 +107,12 @@ const AdminPanel = () => {
       amenities: '',
     });
 
-    toast({
-      title: "Space added successfully!",
-    });
+    toast.success("Space added successfully!");
   };
 
   const handleDeleteSpace = (spaceId) => {
     dispatch(deleteSpace(spaceId));
-    toast({
-      title: "Space deleted successfully!",
-    });
+    toast.success("Space deleted successfully!");
   };
 
   const stats = {
