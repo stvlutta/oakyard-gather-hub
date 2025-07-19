@@ -59,15 +59,70 @@ api.interceptors.response.use(
   }
 );
 
-// Auth API
+// Auth API with mock implementation for demo
 export const authAPI = {
-  register: (userData) => api.post('/auth/register', userData),
-  login: (credentials) => api.post('/auth/login', credentials),
-  logout: () => api.post('/auth/logout'),
-  getMe: () => api.get('/auth/me'),
-  forgotPassword: (email) => api.post('/auth/forgot-password', { email }),
-  resetPassword: (token, password) => api.post('/auth/reset-password', { token, password }),
-  changePassword: (passwords) => api.post('/auth/change-password', passwords),
+  register: (userData) => {
+    // Mock registration
+    return Promise.resolve({
+      data: {
+        data: {
+          message: 'Registration successful'
+        }
+      }
+    });
+  },
+  login: (credentials) => {
+    // Mock login - simulate successful login with demo credentials
+    if (credentials.email === 'admin@oakyard.com' && credentials.password === 'admin123') {
+      return Promise.resolve({
+        data: {
+          data: {
+            access_token: 'mock_access_token',
+            refresh_token: 'mock_refresh_token',
+            user: {
+              id: 1,
+              name: 'Admin User',
+              email: 'admin@oakyard.com',
+              role: 'admin',
+              avatar: null
+            }
+          }
+        }
+      });
+    } else {
+      return Promise.reject({
+        response: {
+          data: {
+            message: 'Invalid credentials'
+          }
+        }
+      });
+    }
+  },
+  logout: () => Promise.resolve({ data: { message: 'Logged out' } }),
+  getMe: () => {
+    const token = localStorage.getItem('access_token');
+    if (token === 'mock_access_token') {
+      return Promise.resolve({
+        data: {
+          data: {
+            user: {
+              id: 1,
+              name: 'Admin User',
+              email: 'admin@oakyard.com',
+              role: 'admin',
+              avatar: null
+            }
+          }
+        }
+      });
+    } else {
+      return Promise.reject({ response: { status: 401 } });
+    }
+  },
+  forgotPassword: (email) => Promise.resolve({ data: { message: 'Reset email sent' } }),
+  resetPassword: (token, password) => Promise.resolve({ data: { message: 'Password reset' } }),
+  changePassword: (passwords) => Promise.resolve({ data: { message: 'Password changed' } }),
 };
 
 // Users API
