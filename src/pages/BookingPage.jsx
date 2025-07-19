@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Calendar as CalendarIcon, Clock, CreditCard, MapPin, Users } from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import Calendar from 'react-calendar';
 import TimePicker from 'react-time-picker';
 import 'react-calendar/dist/Calendar.css';
@@ -62,11 +62,7 @@ const BookingPage = () => {
     if (!currentSpace || !user) return;
 
     if (totalHours <= 0) {
-      toast({
-        title: "Invalid time selection",
-        description: "End time must be after start time.",
-        variant: "destructive",
-      });
+      toast.error("End time must be after start time.");
       return;
     }
 
@@ -100,10 +96,7 @@ const BookingPage = () => {
 
     dispatch(addBooking(newBooking));
 
-    toast({
-      title: "Booking created!",
-      description: "Your booking has been submitted for confirmation.",
-    });
+    toast.success("Booking created! Your booking has been submitted for confirmation.");
 
     navigate('/dashboard');
   };

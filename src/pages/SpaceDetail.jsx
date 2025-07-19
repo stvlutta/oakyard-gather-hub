@@ -20,7 +20,7 @@ import {
   MessageSquare,
   ArrowLeft
 } from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
 const SpaceDetail = () => {
   const { id } = useParams();
@@ -50,11 +50,7 @@ const SpaceDetail = () => {
 
   const handleBookNow = () => {
     if (!isAuthenticated) {
-      toast({
-        title: "Please sign in",
-        description: "You need to be signed in to book a space.",
-        variant: "destructive",
-      });
+      toast.error("You need to be signed in to book a space.");
       return;
     }
   };
