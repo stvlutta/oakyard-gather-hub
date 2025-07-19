@@ -13,11 +13,18 @@ class SocketService {
       return Promise.resolve();
     }
 
-    const socketURL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:5001';
+    const socketURL = import.meta.env.VITE_SOCKET_URL || 'http://localhost:5000';
     
+    // Skip WebSocket connection in development mode for demo
+    const currentToken = token || localStorage.getItem('access_token');
+    if (currentToken === 'mock_access_token') {
+      console.log('📱 Mock mode: Skipping WebSocket connection');
+      return Promise.resolve();
+    }
+
     this.socket = io(socketURL, {
       auth: {
-        token: token || localStorage.getItem('access_token'),
+        token: currentToken,
       },
       transports: ['websocket', 'polling'],
       timeout: 20000,
@@ -55,6 +62,8 @@ class SocketService {
       this.socket.disconnect();
       this.socket = null;
       console.log('🔌 Disconnected from WebSocket server');
+    } else {
+      console.log('🔌 No active WebSocket connection to disconnect');
     }
   }
 
