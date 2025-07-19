@@ -14,7 +14,7 @@ import { Menu, MapPin, User, Settings, LogOut, Calendar, MessageSquare, Video } 
 import { useAuth } from '../../contexts/AuthContext';
 
 export const Header = () => {
-  const { user, isAuthenticated, signOut } = useAuth();
+  const { user, isAuthenticated, logout } = useAuth();
   const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
 
@@ -131,7 +131,7 @@ export const Header = () => {
                       </DropdownMenuItem>
                     )}
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={signOut}>
+                    <DropdownMenuItem onClick={logout}>
                       <LogOut className="mr-2 h-4 w-4" />
                       Sign out
                     </DropdownMenuItem>
@@ -208,7 +208,7 @@ export const Header = () => {
                         variant="outline" 
                         className="w-full justify-start" 
                         onClick={() => {
-                          signOut();
+                          logout();
                           setIsOpen(false);
                         }}
                       >
