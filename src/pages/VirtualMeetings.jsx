@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { meetingsApi } from '../services/meetingsApi';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -26,77 +27,70 @@ const VirtualMeetings = () => {
   const [roomDescription, setRoomDescription] = useState('');
   const [joinRoomId, setJoinRoomId] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [meetings, setMeetings] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Mock data - replace with actual API calls
-  const [rooms, setRooms] = useState([
-    {
-      id: 'room-123',
-      name: 'Weekly Team Standup',
-      description: 'Our regular Monday morning sync-up meeting',
-      host: 'Sarah Johnson',
-      participants: 5,
-      maxParticipants: 10,
-      isActive: true,
-      createdAt: new Date(Date.now() - 1800000),
-      scheduledFor: new Date(Date.now() + 300000)
-    },
-    {
-      id: 'room-456',
-      name: 'Product Planning Session',
-      description: 'Quarterly product roadmap discussion',
-      host: 'Mike Chen',
-      participants: 3,
-      maxParticipants: 8,
-      isActive: true,
-      createdAt: new Date(Date.now() - 3600000)
-    },
-    {
-      id: 'room-789',
-      name: 'Client Presentation Prep',
-      description: 'Preparing for the big client presentation tomorrow',
-      host: 'You',
-      participants: 2,
-      maxParticipants: 5,
-      isActive: false,
-      createdAt: new Date(Date.now() - 7200000),
-      scheduledFor: new Date(Date.now() + 86400000)
+  useEffect(() => {
+    loadMeetings();
+  }, []);
+
+  const loadMeetings = async () => {
+    try {
+      setLoading(true);
+      const data = await meetingsApi.getMeetings();
+      setMeetings(data);
+    } catch (error) {
+      console.error('Error loading meetings:', error);
+    } finally {
+      setLoading(false);
     }
-  ]);
-
-  const createRoom = () => {
-    if (!roomName.trim() || !isAuthenticated) return;
-
-    const newRoom = {
-      id: `room-${Date.now()}`,
-      name: roomName.trim(),
-      description: roomDescription.trim(),
-      host: user?.name || 'You',
-      participants: 1,
-      maxParticipants: 10,
-      isActive: true,
-      createdAt: new Date()
-    };
-
-    setRooms(prev => [newRoom, ...prev]);
-    setRoomName('');
-    setRoomDescription('');
-
-    // Navigate to the new room
-    navigate(`/chat-room/${newRoom.id}`);
   };
 
-  const joinRoom = (roomId) => {
+  const createRoom = async () => {
+    if (!roomName.trim() || !isAuthenticated) return;
+
+    try {
+      const meetingData = {
+        title: roomName.trim(),
+        description: roomDescription.trim(),
+        scheduledAt: new Date().toISOString(),
+        duration: 240, // 4 hours
+        hostId: user?.id,
+        hostName: user?.name || 'Anonymous User',
+        maxParticipants: 10
+      };
+
+      const newMeeting = await meetingsApi.createMeeting(meetingData);
+      setRoomName('');
+      setRoomDescription('');
+      
+      // Navigate to the new room
+      navigate(`/chat-room/${newMeeting.id}`);
+    } catch (error) {
+      console.error('Error creating meeting:', error);
+    }
+  };
+
+  const joinRoom = async (roomId) => {
     const targetRoomId = roomId || joinRoomId;
     if (!targetRoomId.trim()) return;
 
-    // TODO: Check if room exists via API
-    navigate(`/chat-room/${targetRoomId}`);
+    try {
+      // Check if meeting exists
+      const meeting = await meetingsApi.getMeeting(targetRoomId);
+      if (meeting) {
+        navigate(`/chat-room/${targetRoomId}`);
+      }
+    } catch (error) {
+      console.error('Meeting not found:', error);
+      alert('Meeting not found. Please check the meeting ID.');
+    }
   };
 
-  const filteredRooms = rooms.filter(room =>
-    room.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    room.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    room.host.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredMeetings = meetings.filter(meeting =>
+    meeting.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (meeting.description && meeting.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (meeting.host_name && meeting.host_name.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   const formatTime = (date) => {
@@ -165,77 +159,99 @@ const VirtualMeetings = () => {
               </Button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredRooms.map((room) => (
-                <Card key={room.id} className="hover:shadow-lg transition-shadow">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <CardTitle className="text-lg mb-1">{room.name}</CardTitle>
-                        <p className="text-sm text-muted-foreground">
-                          Hosted by {room.host}
-                        </p>
+            {loading ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {[1,2,3].map((i) => (
+                  <Card key={i} className="animate-pulse">
+                    <CardHeader className="pb-3">
+                      <div className="h-6 bg-muted rounded mb-2"></div>
+                      <div className="h-4 bg-muted rounded w-2/3"></div>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        <div className="h-4 bg-muted rounded"></div>
+                        <div className="h-4 bg-muted rounded w-3/4"></div>
+                        <div className="h-10 bg-muted rounded"></div>
                       </div>
-                      <Badge variant={room.isActive ? "default" : "secondary"}>
-                        {room.isActive ? "Active" : "Scheduled"}
-                      </Badge>
-                    </div>
-                  </CardHeader>
-                  
-                  <CardContent className="space-y-4">
-                    <p className="text-sm text-muted-foreground line-clamp-2">
-                      {room.description}
-                    </p>
-                    
-                    <div className="flex items-center justify-between text-sm">
-                      <div className="flex items-center space-x-1">
-                        <Users className="h-4 w-4 text-muted-foreground" />
-                        <span>{room.participants}/{room.maxParticipants}</span>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <Clock className="h-4 w-4 text-muted-foreground" />
-                        <span>
-                          {room.scheduledFor 
-                            ? `${formatDate(room.scheduledFor)} ${formatTime(room.scheduledFor)}`
-                            : `Started ${formatTime(room.createdAt)}`
-                          }
-                        </span>
-                      </div>
-                    </div>
-                    
-                    <Button 
-                      onClick={() => joinRoom(room.id)} 
-                      className="w-full"
-                      variant={room.isActive ? "default" : "outline"}
-                    >
-                      {room.isActive ? (
-                        <>
-                          <Video className="h-4 w-4 mr-2" />
-                          Join Now
-                        </>
-                      ) : (
-                        <>
-                          <Calendar className="h-4 w-4 mr-2" />
-                          View Details
-                        </>
-                      )}
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-
-            {filteredRooms.length === 0 && (
-              <div className="text-center py-12">
-                <Video className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No rooms found</h3>
-                <p className="text-muted-foreground mb-4">
-                  Try adjusting your search or create a new room.
-                </p>
-                <Button onClick={() => setSearchTerm('')}>
-                  Clear Search
-                </Button>
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
+            ) : (
+              <>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {filteredMeetings.map((meeting) => (
+                    <Card key={meeting.id} className="hover:shadow-lg transition-shadow">
+                      <CardHeader className="pb-3">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <CardTitle className="text-lg mb-1">{meeting.title}</CardTitle>
+                            <p className="text-sm text-muted-foreground">
+                              Hosted by {meeting.host_name || 'Unknown Host'}
+                            </p>
+                          </div>
+                          <Badge variant={meeting.is_active ? "default" : "secondary"}>
+                            {meeting.is_active ? "Active" : "Scheduled"}
+                          </Badge>
+                        </div>
+                      </CardHeader>
+                      
+                      <CardContent className="space-y-4">
+                        <p className="text-sm text-muted-foreground line-clamp-2">
+                          {meeting.description || 'No description provided'}
+                        </p>
+                        
+                        <div className="flex items-center justify-between text-sm">
+                          <div className="flex items-center space-x-1">
+                            <Users className="h-4 w-4 text-muted-foreground" />
+                            <span>0/{meeting.max_participants}</span>
+                          </div>
+                          <div className="flex items-center space-x-1">
+                            <Clock className="h-4 w-4 text-muted-foreground" />
+                            <span>
+                              {formatTime(new Date(meeting.scheduled_at))}
+                            </span>
+                          </div>
+                        </div>
+                        
+                        <div className="flex space-x-2">
+                          <Button 
+                            onClick={() => joinRoom(meeting.id)} 
+                            className="flex-1"
+                            variant="default"
+                          >
+                            <Video className="h-4 w-4 mr-2" />
+                            Join Meeting
+                          </Button>
+                          <Button 
+                            onClick={() => {
+                              navigator.clipboard.writeText(`${window.location.origin}/chat-room/${meeting.id}`);
+                              alert('Meeting link copied to clipboard!');
+                            }}
+                            variant="outline"
+                            size="sm"
+                          >
+                            Share
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+
+                {filteredMeetings.length === 0 && !loading && (
+                  <div className="text-center py-12">
+                    <Video className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-lg font-semibold mb-2">No meetings found</h3>
+                    <p className="text-muted-foreground mb-4">
+                      {searchTerm ? 'Try adjusting your search or create a new meeting.' : 'Create your first meeting to get started.'}
+                    </p>
+                    <Button onClick={() => setSearchTerm('')}>
+                      {searchTerm ? 'Clear Search' : 'Create Meeting'}
+                    </Button>
+                  </div>
+                )}
+              </>
             )}
           </TabsContent>
 

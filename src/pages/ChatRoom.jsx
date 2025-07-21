@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
 import { useAuth } from '../contexts/AuthContext';
+import { meetingsApi } from '../services/meetingsApi';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -42,6 +42,8 @@ const ChatRoom = () => {
   const [isVideoOn, setIsVideoOn] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [isInCall, setIsInCall] = useState(false);
+  const [meeting, setMeeting] = useState(null);
+  const [loading, setLoading] = useState(true);
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
@@ -50,65 +52,56 @@ const ChatRoom = () => {
       return;
     }
 
-    // Mock room data - replace with actual API calls
-    const mockMessages = [
-      {
-        id: '1',
+    loadMeeting();
+  }, [isAuthenticated, navigate, roomId]);
+
+  const loadMeeting = async () => {
+    try {
+      setLoading(true);
+      const meetingData = await meetingsApi.getMeeting(roomId);
+      if (!meetingData) {
+        navigate('/virtual-meetings');
+        return;
+      }
+      
+      setMeeting(meetingData);
+      
+      // Join the meeting as a participant
+      if (user) {
+        await meetingsApi.joinMeeting(roomId, {
+          name: user.name || 'Anonymous User',
+          email: user.email || ''
+        });
+      }
+      
+      // Initialize with welcome message
+      setMessages([{
+        id: 'welcome',
         userId: 'system',
         userName: 'System',
-        message: 'Welcome to the meeting room!',
-        timestamp: new Date(Date.now() - 300000),
+        message: `Welcome to ${meetingData.title}!`,
+        timestamp: new Date(),
         type: 'system'
-      },
-      {
-        id: '2',
-        userId: 'user1',
-        userName: 'Sarah Johnson',
-        message: 'Hi everyone! Ready for the meeting?',
-        timestamp: new Date(Date.now() - 180000),
-        type: 'text'
-      },
-      {
-        id: '3',
-        userId: 'user2',
-        userName: 'Mike Chen',
-        message: 'Yes, looking forward to it!',
-        timestamp: new Date(Date.now() - 120000),
-        type: 'text'
-      }
-    ];
+      }]);
 
-    const mockParticipants = [
-      {
+      // Initialize current user as participant
+      setParticipants([{
         id: user?.id || 'current-user',
         name: user?.name || 'You',
         avatar: user?.avatar,
-        isHost: true,
+        isHost: user?.id === meetingData.host_id,
         isMuted: false,
         isVideoOn: false,
         isOnline: true
-      },
-      {
-        id: 'user1',
-        name: 'Sarah Johnson',
-        isHost: false,
-        isMuted: false,
-        isVideoOn: true,
-        isOnline: true
-      },
-      {
-        id: 'user2',
-        name: 'Mike Chen',
-        isHost: false,
-        isMuted: true,
-        isVideoOn: false,
-        isOnline: true
-      }
-    ];
-
-    setMessages(mockMessages);
-    setParticipants(mockParticipants);
-  }, [isAuthenticated, navigate, user]);
+      }]);
+      
+    } catch (error) {
+      console.error('Error loading meeting:', error);
+      navigate('/virtual-meetings');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -174,7 +167,9 @@ const ChatRoom = () => {
         <div className="bg-background border-b p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <h1 className="text-2xl font-bold">Meeting Room #{roomId}</h1>
+              <h1 className="text-2xl font-bold">
+                {loading ? 'Loading...' : meeting?.title || `Meeting Room #${roomId}`}
+              </h1>
               <Badge variant="secondary" className="flex items-center gap-1">
                 <Users className="h-3 w-3" />
                 {participants.length} participants
@@ -182,7 +177,14 @@ const ChatRoom = () => {
             </div>
             
             <div className="flex items-center space-x-2">
-              <Button variant="outline" size="sm">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => {
+                  navigator.clipboard.writeText(`${window.location.origin}/chat-room/${roomId}`);
+                  alert('Meeting link copied to clipboard!');
+                }}
+              >
                 <Share className="h-4 w-4 mr-2" />
                 Share
               </Button>
