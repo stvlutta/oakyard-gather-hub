@@ -14,7 +14,8 @@ import { Menu, MapPin, User, Settings, LogOut, Calendar, MessageSquare, Video } 
 import { useAuth } from '../../contexts/AuthContext';
 
 export const Header = () => {
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, session, signOut } = useAuth();
+  const isAuthenticated = !!session;
   const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
 
@@ -93,9 +94,9 @@ export const Header = () => {
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                       <Avatar className="h-8 w-8">
-                        <AvatarImage src={user?.avatar} alt={user?.name} />
+                        <AvatarImage src={user?.user_metadata?.avatar_url} alt={user?.user_metadata?.full_name} />
                         <AvatarFallback>
-                          {user?.name?.split(' ').map(n => n[0]).join('')}
+                          {user?.user_metadata?.full_name?.split(' ').map(n => n[0]).join('') || user?.email?.[0]?.toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
                     </Button>
@@ -103,7 +104,7 @@ export const Header = () => {
                   <DropdownMenuContent className="w-56 bg-popover" align="end" forceMount>
                     <div className="flex items-center justify-start gap-2 p-2">
                       <div className="flex flex-col space-y-1 leading-none">
-                        <p className="font-medium">{user?.name}</p>
+                        <p className="font-medium">{user?.user_metadata?.full_name || user?.email}</p>
                         <p className="w-[200px] truncate text-sm text-muted-foreground">
                           {user?.email}
                         </p>
@@ -131,7 +132,7 @@ export const Header = () => {
                       </DropdownMenuItem>
                     )}
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={logout}>
+                    <DropdownMenuItem onClick={signOut}>
                       <LogOut className="mr-2 h-4 w-4" />
                       Sign out
                     </DropdownMenuItem>
@@ -141,10 +142,10 @@ export const Header = () => {
             ) : (
               <div className="flex items-center space-x-2">
                 <Button variant="ghost" asChild>
-                  <Link to="/login">Sign in</Link>
+                  <Link to="/auth">Sign in</Link>
                 </Button>
                 <Button variant="default" asChild>
-                  <Link to="/register">Get Started</Link>
+                  <Link to="/auth">Get Started</Link>
                 </Button>
               </div>
             )}
@@ -166,13 +167,13 @@ export const Header = () => {
                   <div className="space-y-4 pt-4 border-t">
                     <div className="flex items-center space-x-3">
                       <Avatar className="h-10 w-10">
-                        <AvatarImage src={user?.avatar} alt={user?.name} />
+                        <AvatarImage src={user?.user_metadata?.avatar_url} alt={user?.user_metadata?.full_name} />
                         <AvatarFallback>
-                          {user?.name?.split(' ').map(n => n[0]).join('')}
+                          {user?.user_metadata?.full_name?.split(' ').map(n => n[0]).join('') || user?.email?.[0]?.toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
                       <div className="flex flex-col">
-                        <span className="font-medium">{user?.name}</span>
+                        <span className="font-medium">{user?.user_metadata?.full_name || user?.email}</span>
                         <span className="text-sm text-muted-foreground">{user?.email}</span>
                       </div>
                     </div>
@@ -208,7 +209,7 @@ export const Header = () => {
                         variant="outline" 
                         className="w-full justify-start" 
                         onClick={() => {
-                          logout();
+                          signOut();
                           setIsOpen(false);
                         }}
                       >
@@ -220,12 +221,12 @@ export const Header = () => {
                 ) : (
                   <div className="space-y-2 pt-4 border-t">
                     <Button variant="outline" className="w-full" asChild>
-                      <Link to="/login" onClick={() => setIsOpen(false)}>
+                      <Link to="/auth" onClick={() => setIsOpen(false)}>
                         Sign in
                       </Link>
                     </Button>
                     <Button className="w-full" asChild>
-                      <Link to="/register" onClick={() => setIsOpen(false)}>
+                      <Link to="/auth" onClick={() => setIsOpen(false)}>
                         Get Started
                       </Link>
                     </Button>

@@ -12,8 +12,7 @@ import Index from "./pages/Index";
 import SpaceDetail from "./pages/SpaceDetail";
 import BookingPage from "./pages/BookingPage";
 import Dashboard from "./pages/Dashboard";
-import Login from "./pages/auth/Login";
-import Register from "./pages/auth/Register";
+import Auth from "./pages/Auth";
 import AdminPanel from "./pages/admin/AdminPanel";
 import About from "./pages/About";
 import HowItWorks from "./pages/HowItWorks";
@@ -48,8 +47,7 @@ const AppContent = () => {
           <Route path="/space/:id" element={<SpaceDetail />} />
           <Route path="/booking/:spaceId" element={<BookingPage />} />
           <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
+          <Route path="/auth" element={<Auth />} />
           <Route path="/admin" element={<AdminPanel />} />
           <Route path="/about" element={<About />} />
           <Route path="/how-it-works" element={<HowItWorks />} />
