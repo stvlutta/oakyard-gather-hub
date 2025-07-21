@@ -56,7 +56,26 @@ export const spacesApi = {
         .single();
       
       if (error) throw error;
-      return data;
+      
+      // Convert snake_case to camelCase for frontend
+      const spaceData = {
+        id: data.id,
+        title: data.title,
+        description: data.description,
+        location: data.location,
+        hourlyRate: data.hourly_rate,
+        capacity: data.capacity,
+        category: data.category,
+        amenities: data.amenities || [],
+        images: data.images || [],
+        ownerId: data.owner_id,
+        ownerName: data.owner_name,
+        rating: data.rating,
+        reviews: data.reviews,
+        availability: data.availability || {}
+      };
+      
+      return spaceData;
     } catch (error) {
       console.error('Error fetching space:', error);
       throw error;

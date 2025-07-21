@@ -1,9 +1,9 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { useAuth } from '../contexts/AuthContext';
 import { setCurrentSpace } from '../store/slices/spacesSlice';
-import { mockSpaces } from '../data/mockData';
+import { spacesApi } from '../services/spacesApi';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
@@ -27,19 +27,46 @@ const SpaceDetail = () => {
   const dispatch = useDispatch();
   const currentSpace = useSelector((state) => state.spaces.currentSpace);
   const { isAuthenticated } = useAuth();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (id) {
-      const space = mockSpaces.find(s => s.id === id);
-      dispatch(setCurrentSpace(space || null));
-    }
-  }, [id]);
+    const loadSpace = async () => {
+      if (id) {
+        try {
+          setLoading(true);
+          const space = await spacesApi.getSpace(id);
+          dispatch(setCurrentSpace(space));
+        } catch (error) {
+          console.error('Failed to load space:', error);
+          setError('Failed to load space');
+          dispatch(setCurrentSpace(null));
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
 
-  if (!currentSpace) {
+    loadSpace();
+  }, [id, dispatch]);
+
+  if (loading) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p>Loading space details...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !currentSpace) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-4">Space not found</h1>
+          <p className="text-muted-foreground mb-4">{error || 'This space may have been removed or does not exist.'}</p>
           <Button asChild>
             <Link to="/">Back to Spaces</Link>
           </Button>
@@ -99,8 +126,8 @@ const SpaceDetail = () => {
               </div>
               <div className="flex items-center space-x-1">
                 <Star className="h-4 w-4 fill-amber-400 text-amber-400" />
-                <span>{currentSpace.rating}</span>
-                <span>({currentSpace.reviews} reviews)</span>
+                <span>{currentSpace.rating || 5.0}</span>
+                <span>({currentSpace.reviews || 0} reviews)</span>
               </div>
               <div className="flex items-center space-x-1">
                 <Users className="h-4 w-4" />
@@ -119,7 +146,7 @@ const SpaceDetail = () => {
           <div>
             <h2 className="text-xl font-semibold mb-3">Amenities</h2>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {currentSpace.amenities.map((amenity) => {
+              {(currentSpace.amenities || []).map((amenity) => {
                 const IconComponent = amenityIcons[amenity] || Coffee;
                 return (
                   <div key={amenity} className="flex items-center space-x-2 p-3 rounded-lg bg-muted">
@@ -134,15 +161,15 @@ const SpaceDetail = () => {
           {/* Owner Info */}
           <Card>
             <CardContent className="p-6">
-              <h3 className="text-lg font-semibold mb-3">Hosted by {currentSpace.ownerName}</h3>
+              <h3 className="text-lg font-semibold mb-3">Hosted by {currentSpace.owner_name || currentSpace.ownerName || 'Space Owner'}</h3>
               <div className="flex items-center space-x-4">
                 <div className="h-12 w-12 rounded-full bg-gradient-secondary flex items-center justify-center">
                   <span className="text-secondary-foreground font-semibold">
-                    {currentSpace.ownerName.split(' ').map(n => n[0]).join('')}
+                    {(currentSpace.owner_name || currentSpace.ownerName || 'Space Owner').split(' ').map(n => n[0]).join('')}
                   </span>
                 </div>
                 <div>
-                  <p className="font-medium">{currentSpace.ownerName}</p>
+                  <p className="font-medium">{currentSpace.owner_name || currentSpace.ownerName || 'Space Owner'}</p>
                   <p className="text-sm text-muted-foreground">Space owner since 2022</p>
                 </div>
               </div>
@@ -157,7 +184,7 @@ const SpaceDetail = () => {
             <CardContent className="p-6">
               <div className="text-center mb-6">
                 <div className="text-3xl font-bold text-primary mb-1">
-                  ${currentSpace.hourlyRate}
+                  KSH {(currentSpace.hourlyRate || currentSpace.hourly_rate || 0).toLocaleString()}
                   <span className="text-base font-normal text-muted-foreground">/hour</span>
                 </div>
                 <p className="text-sm text-muted-foreground">Flexible hourly booking</p>
