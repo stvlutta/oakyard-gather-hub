@@ -1,6 +1,7 @@
 import stripe
 from flask import current_app
 from decimal import Decimal
+import os
 
 # Initialize Stripe
 def init_stripe():
@@ -316,3 +317,32 @@ def get_transaction_history(limit=100):
     except stripe.error.StripeError as e:
         current_app.logger.error(f"Stripe error: {e}")
         raise Exception(f"Transaction history retrieval failed: {e}")
+
+stripe.api_key = os.getenv('STRIPE_SECRET_KEY', 'sk_test_...')  # Replace with your test key or set in env
+
+# You can set your domain here or pass it from the frontend
+DOMAIN = os.getenv('FRONTEND_DOMAIN', 'http://localhost:8080')
+
+def create_checkout_session(amount, currency='kes', metadata=None):
+    try:
+        session = stripe.checkout.Session.create(
+            payment_method_types=['card'],
+            line_items=[{
+                'price_data': {
+                    'currency': currency,
+                    'product_data': {
+                        'name': 'Space Booking',
+                    },
+                    'unit_amount': int(amount * 100),
+                },
+                'quantity': 1,
+            }],
+            mode='payment',
+            success_url=f'{DOMAIN}/payment-success',
+            cancel_url=f'{DOMAIN}/payment-cancel',
+            metadata=metadata or {},
+        )
+        return session.url
+    except Exception as e:
+        print(f'Stripe error: {e}')
+        return None

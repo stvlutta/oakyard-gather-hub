@@ -16,6 +16,8 @@ import Calendar from 'react-calendar';
 import TimePicker from 'react-time-picker';
 import 'react-calendar/dist/Calendar.css';
 import 'react-time-picker/dist/TimePicker.css';
+import api from '../services/api'; // Make sure this is your API helper
+import { spacesApi } from '../services/spacesApi';
 
 const BookingPage = () => {
   const { spaceId } = useParams();
@@ -37,8 +39,21 @@ const BookingPage = () => {
     }
 
     if (spaceId) {
-      const space = mockSpaces.find(s => s.id === spaceId);
-      dispatch(setCurrentSpace(space || null));
+      // Try to fetch from Supabase first
+      spacesApi.getSpace(spaceId)
+        .then(space => {
+          if (space) {
+            dispatch(setCurrentSpace(space));
+          } else {
+            // fallback to mockSpaces if not found in backend
+            const mockSpace = mockSpaces.find(s => s.id === spaceId);
+            dispatch(setCurrentSpace(mockSpace || null));
+          }
+        })
+        .catch(() => {
+          const mockSpace = mockSpaces.find(s => s.id === spaceId);
+          dispatch(setCurrentSpace(mockSpace || null));
+        });
     }
   }, [spaceId, dispatch, isAuthenticated, navigate]);
 
@@ -58,7 +73,7 @@ const BookingPage = () => {
     }
   }, [startTime, endTime, currentSpace]);
 
-  const handleBooking = () => {
+  const handleBooking = async () => {
     if (!currentSpace || !user) return;
 
     if (totalHours <= 0) {
@@ -94,11 +109,25 @@ const BookingPage = () => {
       createdAt: new Date().toISOString(),
     };
 
-    dispatch(addBooking(newBooking));
-
-    toast.success("Booking created! Your booking has been submitted for confirmation.");
-
-    navigate('/dashboard');
+    // Call backend to create Stripe Checkout Session
+    try {
+      const response = await api.post('/bookings/create-checkout-session', {
+        amount: totalCost * 1.1, // include tax
+        currency: 'kes',
+        metadata: {
+          bookingId: newBooking.id,
+          userId: user.id,
+          spaceId: currentSpace.id,
+        },
+      });
+      if (response.data && response.data.checkout_url) {
+        window.location.href = response.data.checkout_url;
+      } else {
+        toast.error('Failed to initiate payment.');
+      }
+    } catch (err) {
+      toast.error('Payment error: ' + (err.response?.data?.error || err.message));
+    }
   };
 
   if (!currentSpace) {
@@ -128,7 +157,7 @@ const BookingPage = () => {
               <CardContent className="p-6">
                 <div className="flex items-start space-x-4">
                   <img 
-                    src={currentSpace.images[0]} 
+                    src={currentSpace.images && currentSpace.images[0] ? currentSpace.images[0] : 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&h=600&fit=crop'} 
                     alt={currentSpace.title}
                     className="w-20 h-20 object-cover rounded-lg"
                   />
@@ -145,7 +174,7 @@ const BookingPage = () => {
                   </div>
                   <div className="text-right">
                     <div className="text-lg font-bold text-primary">
-                      ${currentSpace.hourlyRate}/hr
+                      KSH {currentSpace.hourlyRate}/hr
                     </div>
                   </div>
                 </div>
@@ -249,15 +278,15 @@ const BookingPage = () => {
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <span>Subtotal:</span>
-                    <span>${totalCost.toFixed(2)}</span>
+                    <span>KSH {totalCost.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>Tax (10%):</span>
-                    <span>${tax.toFixed(2)}</span>
+                    <span>KSH {tax.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between font-bold text-lg">
                     <span>Total:</span>
-                    <span>${finalTotal.toFixed(2)}</span>
+                    <span>KSH {finalTotal.toFixed(2)}</span>
                   </div>
                 </div>
 
@@ -276,19 +305,6 @@ const BookingPage = () => {
                   By clicking "Confirm Booking", you agree to our terms of service and 
                   cancellation policy.
                 </p>
-              </CardContent>
-            </Card>
-
-            {/* Payment Note */}
-            <Card>
-              <CardContent className="p-4">
-                <div className="text-center text-sm text-muted-foreground">
-                  <p className="font-medium mb-2">💳 Secure Payment</p>
-                  <p>
-                    This is a demo booking. In a real application, payment would be 
-                    processed securely through Stripe or similar payment gateway.
-                  </p>
-                </div>
               </CardContent>
             </Card>
           </div>

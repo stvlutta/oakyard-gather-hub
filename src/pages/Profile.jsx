@@ -38,7 +38,7 @@ const Profile = () => {
     );
   }
 
-  const userInitials = user.name
+  const userInitials = (user.name || '')
     .split(' ')
     .map(name => name[0])
     .join('')

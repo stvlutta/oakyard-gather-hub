@@ -31,6 +31,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 
 const ChatRoom = () => {
   const { roomId } = useParams();
@@ -45,6 +46,8 @@ const ChatRoom = () => {
   const [meeting, setMeeting] = useState(null);
   const [loading, setLoading] = useState(true);
   const messagesEndRef = useRef(null);
+  const [showRoomSettings, setShowRoomSettings] = useState(false);
+  const [showManageParticipants, setShowManageParticipants] = useState(false);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -196,11 +199,11 @@ const ChatRoom = () => {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
-                  <DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setShowRoomSettings(true)}>
                     <Settings className="h-4 w-4 mr-2" />
                     Room Settings
                   </DropdownMenuItem>
-                  <DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setShowManageParticipants(true)}>
                     <Users className="h-4 w-4 mr-2" />
                     Manage Participants
                   </DropdownMenuItem>
@@ -226,7 +229,7 @@ const ChatRoom = () => {
                     <div className="text-center">
                       <Avatar className="h-16 w-16 mx-auto mb-2">
                         <AvatarImage src={user?.avatar} />
-                        <AvatarFallback>{user?.name.charAt(0)}</AvatarFallback>
+                        <AvatarFallback>{user?.name ? user.name.charAt(0) : ''}</AvatarFallback>
                       </Avatar>
                       <p className="text-sm text-muted-foreground">You</p>
                     </div>
@@ -417,6 +420,42 @@ const ChatRoom = () => {
           </div>
         </ScrollArea>
       </div>
+
+      {/* Room Settings Dialog */}
+      <Dialog open={showRoomSettings} onOpenChange={setShowRoomSettings}>
+        <DialogContent>
+          <DialogTitle>Room Settings</DialogTitle>
+          <DialogDescription>
+            <div>
+              <p><strong>Title:</strong> {meeting?.title || 'N/A'}</p>
+              <p><strong>Host:</strong> {participants.find(p => p.isHost)?.name || 'N/A'}</p>
+              <p><strong>Room ID:</strong> {roomId}</p>
+              {meeting?.description && <p><strong>Description:</strong> {meeting.description}</p>}
+            </div>
+          </DialogDescription>
+          <div className="flex justify-end mt-4">
+            <Button onClick={() => setShowRoomSettings(false)}>Close</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+      {/* Manage Participants Dialog */}
+      <Dialog open={showManageParticipants} onOpenChange={setShowManageParticipants}>
+        <DialogContent>
+          <DialogTitle>Manage Participants</DialogTitle>
+          <DialogDescription>
+            <ul>
+              {participants.map((p) => (
+                <li key={p.id} style={{marginBottom: 8}}>
+                  <strong>{p.name}</strong> {p.isHost && <span>(Host)</span>} {p.isMuted ? '🔇' : '🎤'} {p.isVideoOn ? '📹' : '📷'}
+                </li>
+              ))}
+            </ul>
+          </DialogDescription>
+          <div className="flex justify-end mt-4">
+            <Button onClick={() => setShowManageParticipants(false)}>Close</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

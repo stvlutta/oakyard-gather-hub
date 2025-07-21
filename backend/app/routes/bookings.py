@@ -15,6 +15,7 @@ from app.utils.helpers import (
 from app.services.payment_service import create_payment_intent, confirm_payment
 from app.services.email_service import send_booking_confirmation_email, send_booking_cancellation_email
 from sqlalchemy import func
+from app.services import payment_service
 
 bookings_bp = Blueprint('bookings', __name__)
 
@@ -515,3 +516,17 @@ def check_availability():
         'total_amount': float(total_amount),
         'hourly_rate': float(space.hourly_rate)
     })
+
+@bookings_bp.route('/create-checkout-session', methods=['POST'])
+def create_checkout():
+    data = request.get_json()
+    amount = data.get('amount')
+    currency = data.get('currency', 'usd')
+    metadata = data.get('metadata', {})
+    if not amount:
+        return jsonify({'error': 'Amount is required'}), 400
+    url = payment_service.create_checkout_session(amount, currency, metadata)
+    if url:
+        return jsonify({'checkout_url': url})
+    else:
+        return jsonify({'error': 'Failed to create checkout session'}), 500

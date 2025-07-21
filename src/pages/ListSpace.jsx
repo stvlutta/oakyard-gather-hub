@@ -135,8 +135,13 @@ const ListSpace = () => {
     setError('');
 
     try {
+      let location = formData.address;
+      if (location && !location.toLowerCase().includes('kenya')) {
+        location = location + ', Kenya';
+      }
       const spaceData = {
         ...formData,
+        location,
         hourly_rate: parseFloat(formData.hourly_rate),
         capacity: parseInt(formData.capacity),
         amenities: selectedAmenities,
