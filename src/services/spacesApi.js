@@ -1,4 +1,10 @@
-import { supabase } from '@/integrations/supabase/client';
+import { createClient } from '@supabase/supabase-js';
+
+// Create Supabase client directly
+const supabase = createClient(
+  'https://bgvhqdpyoetjqcrralak.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJndmhxZHB5b2V0anFjcnJhbGFrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI1NjE3ODYsImV4cCI6MjA2ODEzNzc4Nn0.xFlcB4zS_hXd8N6yF90q5Ko3-ATyLfMoRb3jx6HK0iU'
+);
 
 export const spacesApi = {
   // Get all spaces
