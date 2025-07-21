@@ -34,8 +34,11 @@ const Index = () => {
   const [filteredSpaces, setFilteredSpaces] = useState(spaces);
 
   useEffect(() => {
-    dispatch(setSpaces(mockSpaces));
-  }, [dispatch]);
+    // Only load mock data if no spaces exist yet
+    if (spaces.length === 0) {
+      dispatch(setSpaces(mockSpaces));
+    }
+  }, [dispatch, spaces.length]);
 
   useEffect(() => {
     let filtered = spaces;
