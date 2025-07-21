@@ -14,7 +14,90 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          full_name: string | null
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      spaces: {
+        Row: {
+          amenities: string[] | null
+          availability: Json | null
+          capacity: number
+          category: string
+          created_at: string
+          description: string
+          hourly_rate: number
+          id: string
+          images: string[] | null
+          location: string
+          owner_id: string | null
+          owner_name: string | null
+          rating: number | null
+          reviews: number | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          amenities?: string[] | null
+          availability?: Json | null
+          capacity?: number
+          category?: string
+          created_at?: string
+          description: string
+          hourly_rate: number
+          id?: string
+          images?: string[] | null
+          location: string
+          owner_id?: string | null
+          owner_name?: string | null
+          rating?: number | null
+          reviews?: number | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          amenities?: string[] | null
+          availability?: Json | null
+          capacity?: number
+          category?: string
+          created_at?: string
+          description?: string
+          hourly_rate?: number
+          id?: string
+          images?: string[] | null
+          location?: string
+          owner_id?: string | null
+          owner_name?: string | null
+          rating?: number | null
+          reviews?: number | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

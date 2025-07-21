@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { setSpaces, setSearchQuery, setFilters } from '../store/slices/spacesSlice';
-import { mockSpaces } from '../data/mockData';
+import { setSpaces, setSearchQuery, setFilters, setLoading } from '../store/slices/spacesSlice';
+import { spacesApi } from '../services/spacesApi';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -30,15 +30,25 @@ import heroImage from '../assets/hero-community.jpg';
 
 const Index = () => {
   const dispatch = useDispatch();
-  const { spaces, searchQuery, filters } = useSelector((state) => state.spaces);
+  const { spaces, searchQuery, filters, loading } = useSelector((state) => state.spaces);
   const [filteredSpaces, setFilteredSpaces] = useState(spaces);
 
   useEffect(() => {
-    // Only load mock data if no spaces exist yet
-    if (spaces.length === 0) {
-      dispatch(setSpaces(mockSpaces));
-    }
-  }, [dispatch, spaces.length]);
+    const loadSpaces = async () => {
+      try {
+        dispatch(setLoading(true));
+        const spacesData = await spacesApi.getSpaces();
+        dispatch(setSpaces(spacesData || []));
+      } catch (error) {
+        console.error('Failed to load spaces:', error);
+        dispatch(setSpaces([]));
+      } finally {
+        dispatch(setLoading(false));
+      }
+    };
+
+    loadSpaces();
+  }, [dispatch]);
 
   useEffect(() => {
     let filtered = spaces;
@@ -266,7 +276,12 @@ const Index = () => {
             </Button>
           </div>
           
-          {filteredSpaces.length > 0 ? (
+          {loading ? (
+            <div className="text-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+              <p className="text-muted-foreground">Loading spaces...</p>
+            </div>
+          ) : filteredSpaces.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredSpaces.map((space) => (
                 <SpaceCard key={space.id} space={space} />

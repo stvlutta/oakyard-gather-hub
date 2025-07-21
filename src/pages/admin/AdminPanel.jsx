@@ -2,9 +2,10 @@ import { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { setSpaces, addSpace, updateSpace, deleteSpace } from '../../store/slices/spacesSlice';
+import { setSpaces, addSpace, updateSpace, deleteSpace, setLoading } from '../../store/slices/spacesSlice';
 import { setBookings } from '../../store/slices/bookingsSlice';
-import { mockSpaces, mockBookings, mockUsers } from '../../data/mockData';
+import { mockBookings, mockUsers } from '../../data/mockData';
+import { spacesApi } from '../../services/spacesApi';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -72,47 +73,67 @@ const AdminPanel = () => {
       return;
     }
 
-    // Load all data for admin
-    dispatch(setSpaces(mockSpaces));
+    // Load spaces from API
+    const loadSpaces = async () => {
+      try {
+        dispatch(setLoading(true));
+        const spacesData = await spacesApi.getSpaces();
+        dispatch(setSpaces(spacesData || []));
+      } catch (error) {
+        console.error('Failed to load spaces:', error);
+        dispatch(setSpaces([]));
+      } finally {
+        dispatch(setLoading(false));
+      }
+    };
+
+    loadSpaces();
     dispatch(setBookings(mockBookings));
   }, [isAuthenticated, user, navigate, dispatch]);
 
-  const handleAddSpace = () => {
+  const handleAddSpace = async () => {
     if (!newSpace.title || !newSpace.description || !newSpace.location) {
       toast.error("Please fill all required fields");
       return;
     }
 
-    const space = {
-      id: `space-${Date.now()}`,
-      ...newSpace,
-      images: ['https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&h=600&fit=crop'],
-      amenities: newSpace.amenities.split(',').map(a => a.trim()).filter(Boolean),
-      ownerId: user?.id || '',
-      ownerName: user?.name || '',
-      rating: 5.0,
-      reviews: 0,
-      availability: {},
-    };
+    try {
+      const spaceData = {
+        ...newSpace,
+        amenities: newSpace.amenities.split(',').map(a => a.trim()).filter(Boolean),
+        images: ['https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&h=600&fit=crop'],
+      };
 
-    dispatch(addSpace(space));
-    setIsAddDialogOpen(false);
-    setNewSpace({
-      title: '',
-      description: '',
-      location: '',
-      hourlyRate: 0,
-      capacity: 1,
-      category: 'meeting-room',
-      amenities: '',
-    });
+      const createdSpace = await spacesApi.createSpace(spaceData);
+      dispatch(addSpace(createdSpace));
+      
+      setIsAddDialogOpen(false);
+      setNewSpace({
+        title: '',
+        description: '',
+        location: '',
+        hourlyRate: 0,
+        capacity: 1,
+        category: 'meeting-room',
+        amenities: '',
+      });
 
-    toast.success("Space added successfully!");
+      toast.success("Space added successfully!");
+    } catch (error) {
+      console.error('Error adding space:', error);
+      toast.error("Failed to add space. Please try again.");
+    }
   };
 
-  const handleDeleteSpace = (spaceId) => {
-    dispatch(deleteSpace(spaceId));
-    toast.success("Space deleted successfully!");
+  const handleDeleteSpace = async (spaceId) => {
+    try {
+      await spacesApi.deleteSpace(spaceId);
+      dispatch(deleteSpace(spaceId));
+      toast.success("Space deleted successfully!");
+    } catch (error) {
+      console.error('Error deleting space:', error);
+      toast.error("Failed to delete space. Please try again.");
+    }
   };
 
   const stats = {
