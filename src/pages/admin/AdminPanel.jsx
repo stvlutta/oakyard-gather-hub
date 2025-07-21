@@ -52,7 +52,7 @@ const AdminPanel = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { user, isAuthenticated } = useAuth();
-  const { spaces } = useSelector((state) => state.spaces);
+  const { spaces, loading } = useSelector((state) => state.spaces);
   const { bookings } = useSelector((state) => state.bookings);
 
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -305,7 +305,7 @@ const AdminPanel = () => {
                   <DollarSign className="h-6 w-6 text-accent" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">KSH {stats.totalRevenue.toLocaleString()}</p>
+                  <p className="text-2xl font-bold">KSH {(stats?.totalRevenue || 0).toLocaleString()}</p>
                   <p className="text-sm text-muted-foreground">Total Revenue</p>
                 </div>
               </div>
@@ -352,50 +352,65 @@ const AdminPanel = () => {
                       <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
-                  <TableBody>
-                    {spaces.map((space) => (
-                      <TableRow key={space.id}>
-                        <TableCell>
-                          <div className="flex items-center space-x-3">
-                            <img 
-                              src={space.images[0]} 
-                              alt={space.title}
-                              className="w-10 h-10 rounded object-cover"
-                            />
-                            <div>
-                              <p className="font-medium">{space.title}</p>
-                              <p className="text-sm text-muted-foreground">
-                                {space.rating} ⭐ ({space.reviews} reviews)
-                              </p>
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="secondary">
-                            {space.category.replace('-', ' ')}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="max-w-xs truncate">
-                          {space.location}
-                        </TableCell>
-                        <TableCell>KSH {space.hourlyRate.toLocaleString()}</TableCell>
-                        <TableCell>{space.capacity} people</TableCell>
-                        <TableCell>
-                          <div className="flex space-x-2">
-                            <Button variant="outline" size="sm">
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button 
-                              variant="destructive" 
-                              size="sm"
-                              onClick={() => handleDeleteSpace(space.id)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                   <TableBody>
+                     {loading ? (
+                       <TableRow>
+                         <TableCell colSpan={6} className="text-center py-8">
+                           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+                           Loading spaces...
+                         </TableCell>
+                       </TableRow>
+                     ) : spaces && spaces.length > 0 ? (
+                       spaces.map((space) => (
+                         <TableRow key={space?.id}>
+                           <TableCell>
+                             <div className="flex items-center space-x-3">
+                               <img 
+                                 src={space?.images?.[0] || 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&h=600&fit=crop'} 
+                                 alt={space?.title || 'Space'}
+                                 className="w-10 h-10 rounded object-cover"
+                               />
+                               <div>
+                                 <p className="font-medium">{space?.title || 'Untitled'}</p>
+                                 <p className="text-sm text-muted-foreground">
+                                   {space?.rating || 0} ⭐ ({space?.reviews || 0} reviews)
+                                 </p>
+                               </div>
+                             </div>
+                           </TableCell>
+                           <TableCell>
+                             <Badge variant="secondary">
+                               {space?.category?.replace('-', ' ') || 'Unknown'}
+                             </Badge>
+                           </TableCell>
+                           <TableCell className="max-w-xs truncate">
+                             {space?.location || 'Unknown location'}
+                           </TableCell>
+                           <TableCell>KSH {(space?.hourlyRate || 0).toLocaleString()}</TableCell>
+                           <TableCell>{space?.capacity || 0} people</TableCell>
+                           <TableCell>
+                             <div className="flex space-x-2">
+                               <Button variant="outline" size="sm">
+                                 <Edit className="h-4 w-4" />
+                               </Button>
+                               <Button 
+                                 variant="destructive" 
+                                 size="sm"
+                                 onClick={() => handleDeleteSpace(space?.id)}
+                               >
+                                 <Trash2 className="h-4 w-4" />
+                               </Button>
+                             </div>
+                           </TableCell>
+                         </TableRow>
+                       ))
+                     ) : (
+                       <TableRow>
+                         <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                           No spaces available
+                         </TableCell>
+                       </TableRow>
+                     )}
                   </TableBody>
                 </Table>
               </CardContent>
@@ -443,7 +458,7 @@ const AdminPanel = () => {
                             {booking.status}
                           </Badge>
                         </TableCell>
-                        <TableCell>KSH {booking.totalCost.toLocaleString()}</TableCell>
+                        <TableCell>KSH {(booking?.totalCost || 0).toLocaleString()}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
