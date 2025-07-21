@@ -50,10 +50,16 @@ export const spacesApi = {
     try {
       console.log('Creating space with data:', spaceData);
       
-      // For now, we'll create spaces without strict authentication
-      // since the current auth system is separate from Supabase
+      // Convert camelCase to snake_case for database
       const newSpace = {
-        ...spaceData,
+        title: spaceData.title,
+        description: spaceData.description,
+        location: spaceData.location,
+        hourly_rate: spaceData.hourlyRate, // Convert camelCase to snake_case
+        capacity: spaceData.capacity,
+        category: spaceData.category,
+        amenities: spaceData.amenities,
+        images: spaceData.images,
         owner_id: 'admin-user', // Mock owner for now
         owner_name: 'Admin User',
         rating: 5.0,
