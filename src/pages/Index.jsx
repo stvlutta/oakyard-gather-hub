@@ -208,8 +208,7 @@ const Index = () => {
                     <Link to="/auth">Sign up to get started</Link>
                   </Button>
                 </div>
-              )}
-              </div>
+               )}
             </div>
           </div>
         </div>

@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { authAPI, handleAPIError } from '../services/api';
-import socketService from '../services/socket';
+import { supabase } from '../integrations/supabase/client';
 import { toast } from 'sonner';
 
 const AuthContext = createContext();
@@ -15,185 +14,124 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  // Check if user is authenticated on app load
   useEffect(() => {
-    const checkAuth = async () => {
-      const token = localStorage.getItem('access_token');
-      if (token) {
-        try {
-          const response = await authAPI.getMe();
-          const userData = response.data.data.user;
-          setUser(userData);
-          setIsAuthenticated(true);
-          
-          // Connect to WebSocket
-          try {
-            await socketService.connect(token);
-          } catch (socketError) {
-            console.warn('Failed to connect to WebSocket:', socketError);
-          }
-        } catch (error) {
-          console.error('Auth check failed:', error);
-          // Clear tokens without calling logout to prevent infinite loop
-          localStorage.removeItem('access_token');
-          localStorage.removeItem('refresh_token');
-          setUser(null);
-          setIsAuthenticated(false);
-          socketService.disconnect();
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        if (event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
+          setLoading(false);
         }
       }
-      setLoading(false);
-    };
+    );
 
-    checkAuth();
+    // Check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
-  const login = async (credentials) => {
-    try {
-      const response = await authAPI.login(credentials);
-      const { access_token, refresh_token, user: userData } = response.data.data;
-      
-      // Store tokens
-      localStorage.setItem('access_token', access_token);
-      localStorage.setItem('refresh_token', refresh_token);
-      
-      // Set user state
-      setUser(userData);
-      setIsAuthenticated(true);
-      
-      // Connect to WebSocket
-      try {
-        await socketService.connect(access_token);
-      } catch (socketError) {
-        console.warn('Failed to connect to WebSocket:', socketError);
+  const signIn = async (email, password) => {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+    
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success('Successfully signed in!');
+    }
+    
+    return { data, error };
+  };
+
+  const signUp = async (email, password, fullName) => {
+    const redirectUrl = `${window.location.origin}/`;
+    
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: redirectUrl,
+        data: {
+          full_name: fullName,
+        }
       }
-      
-      toast.success('Login successful!');
-      return { success: true };
-    } catch (error) {
-      const message = handleAPIError(error);
-      toast.error(message);
-      return { success: false, error: message };
-    }
-  };
-
-  const register = async (userData) => {
-    try {
-      const response = await authAPI.register(userData);
-      toast.success('Registration successful! Please check your email to verify your account.');
-      return { success: true, data: response.data };
-    } catch (error) {
-      const message = handleAPIError(error);
-      toast.error(message);
-      return { success: false, error: message };
-    }
-  };
-
-  const logout = async () => {
-    try {
-      await authAPI.logout();
-    } catch (error) {
-      console.error('Logout error:', error);
+    });
+    
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success('Check your email for the confirmation link!');
     }
     
-    // Clear tokens
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
+    return { data, error };
+  };
+
+  const signInWithGoogle = async () => {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/`
+      }
+    });
     
-    // Clear user state
-    setUser(null);
-    setIsAuthenticated(false);
+    if (error) {
+      toast.error(error.message);
+    }
     
-    // Disconnect WebSocket
-    socketService.disconnect();
+    return { data, error };
+  };
+
+  const signOut = async () => {
+    const { error } = await supabase.auth.signOut();
     
-    toast.success('Logged out successfully');
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success('Successfully signed out!');
+    }
+    
+    return { error };
   };
 
-  const forgotPassword = async (email) => {
-    try {
-      await authAPI.forgotPassword(email);
-      toast.success('Password reset email sent! Check your inbox.');
-      return { success: true };
-    } catch (error) {
-      const message = handleAPIError(error);
-      toast.error(message);
-      return { success: false, error: message };
+  const resetPassword = async (email) => {
+    const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success('Password reset email sent!');
     }
-  };
-
-  const resetPassword = async (token, password) => {
-    try {
-      await authAPI.resetPassword(token, password);
-      toast.success('Password reset successful! You can now log in with your new password.');
-      return { success: true };
-    } catch (error) {
-      const message = handleAPIError(error);
-      toast.error(message);
-      return { success: false, error: message };
-    }
-  };
-
-  const changePassword = async (passwords) => {
-    try {
-      await authAPI.changePassword(passwords);
-      toast.success('Password changed successfully!');
-      return { success: true };
-    } catch (error) {
-      const message = handleAPIError(error);
-      toast.error(message);
-      return { success: false, error: message };
-    }
-  };
-
-  const updateUser = async (userData) => {
-    try {
-      const response = await authAPI.updateProfile(userData);
-      const updatedUser = response.data.data.user;
-      setUser(updatedUser);
-      toast.success('Profile updated successfully!');
-      return { success: true, data: updatedUser };
-    } catch (error) {
-      const message = handleAPIError(error);
-      toast.error(message);
-      return { success: false, error: message };
-    }
-  };
-
-  const refreshUser = async () => {
-    try {
-      const response = await authAPI.getMe();
-      const userData = response.data.data.user;
-      setUser(userData);
-      return userData;
-    } catch (error) {
-      console.error('Failed to refresh user:', error);
-      // Clear tokens without calling logout to prevent infinite loop
-      localStorage.removeItem('access_token');
-      localStorage.removeItem('refresh_token');
-      setUser(null);
-      setIsAuthenticated(false);
-      socketService.disconnect();
-      return null;
-    }
+    
+    return { data, error };
   };
 
   const value = {
     user,
+    session,
     loading,
-    isAuthenticated,
-    login,
-    register,
-    logout,
-    forgotPassword,
+    signIn,
+    signUp,
+    signInWithGoogle,
+    signOut,
     resetPassword,
-    changePassword,
-    updateUser,
-    refreshUser,
   };
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  );
 };
