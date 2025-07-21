@@ -89,6 +89,23 @@ export const meetingsApi = {
     }
   },
 
+  // Get meeting by code
+  async getMeetingByCode(code) {
+    try {
+      const { data, error } = await supabase
+        .from('meetings')
+        .select('*')
+        .eq('meeting_code', code.toUpperCase())
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error fetching meeting by code:', error);
+      throw error;
+    }
+  },
+
   // Generate meeting code
   generateMeetingCode() {
     return Math.random().toString(36).substring(2, 8).toUpperCase();

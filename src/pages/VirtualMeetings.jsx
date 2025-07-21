@@ -76,14 +76,24 @@ const VirtualMeetings = () => {
     if (!targetRoomId.trim()) return;
 
     try {
-      // Check if meeting exists
-      const meeting = await meetingsApi.getMeeting(targetRoomId);
+      let meeting = null;
+      
+      // First try to find by ID (UUID)
+      try {
+        meeting = await meetingsApi.getMeeting(targetRoomId);
+      } catch (error) {
+        // If not found by ID, try to find by meeting code
+        meeting = await meetingsApi.getMeetingByCode(targetRoomId);
+      }
+      
       if (meeting) {
-        navigate(`/chat-room/${targetRoomId}`);
+        navigate(`/chat-room/${meeting.id}`);
+      } else {
+        alert('Meeting not found. Please check the meeting ID or code.');
       }
     } catch (error) {
-      console.error('Meeting not found:', error);
-      alert('Meeting not found. Please check the meeting ID.');
+      console.error('Error joining meeting:', error);
+      alert('Meeting not found. Please check the meeting ID or code.');
     }
   };
 
@@ -214,25 +224,34 @@ const VirtualMeetings = () => {
                           </div>
                         </div>
                         
-                        <div className="flex space-x-2">
-                          <Button 
-                            onClick={() => joinRoom(meeting.id)} 
-                            className="flex-1"
-                            variant="default"
-                          >
-                            <Video className="h-4 w-4 mr-2" />
-                            Join Meeting
-                          </Button>
-                          <Button 
-                            onClick={() => {
-                              navigator.clipboard.writeText(`${window.location.origin}/chat-room/${meeting.id}`);
-                              alert('Meeting link copied to clipboard!');
-                            }}
-                            variant="outline"
-                            size="sm"
-                          >
-                            Share
-                          </Button>
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between text-xs text-muted-foreground">
+                            <span>Meeting Code:</span>
+                            <code className="bg-muted px-2 py-1 rounded text-foreground font-mono">
+                              {meeting.meeting_code}
+                            </code>
+                          </div>
+                          
+                          <div className="flex space-x-2">
+                            <Button 
+                              onClick={() => joinRoom(meeting.id)} 
+                              className="flex-1"
+                              variant="default"
+                            >
+                              <Video className="h-4 w-4 mr-2" />
+                              Join Meeting
+                            </Button>
+                            <Button 
+                              onClick={() => {
+                                navigator.clipboard.writeText(`${window.location.origin}/chat-room/${meeting.id}`);
+                                alert('Meeting link copied to clipboard!');
+                              }}
+                              variant="outline"
+                              size="sm"
+                            >
+                              Share
+                            </Button>
+                          </div>
                         </div>
                       </CardContent>
                     </Card>
@@ -331,15 +350,15 @@ const VirtualMeetings = () => {
               
               <CardContent className="space-y-6">
                 <div className="space-y-2">
-                  <Label htmlFor="room-id">Room ID</Label>
+                  <Label htmlFor="room-id">Meeting ID or Code</Label>
                   <Input
                     id="room-id"
-                    placeholder="Enter room ID..."
+                    placeholder="Enter meeting ID or code (e.g., ABC123)..."
                     value={joinRoomId}
                     onChange={(e) => setJoinRoomId(e.target.value)}
                   />
                   <p className="text-xs text-muted-foreground">
-                    Ask the meeting host for the room ID
+                    Ask the meeting host for the meeting ID or 6-character code
                   </p>
                 </div>
                 
