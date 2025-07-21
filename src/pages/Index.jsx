@@ -91,7 +91,7 @@ const Index = () => {
             </h3>
             <div className="text-right">
               <div className="text-lg font-bold text-primary">
-                ${space.hourlyRate}
+                KSH {space.hourlyRate.toLocaleString()}
                 <span className="text-sm font-normal text-muted-foreground">/hr</span>
               </div>
             </div>
@@ -280,7 +280,7 @@ const Index = () => {
               </p>
               <Button onClick={() => {
                 dispatch(setSearchQuery(''));
-                dispatch(setFilters({ category: '', priceRange: [0, 1000], location: '' }));
+                dispatch(setFilters({ category: '', priceRange: [0, 100000], location: '' }));
               }}>
                 Clear Filters
               </Button>

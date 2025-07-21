@@ -86,7 +86,7 @@ const AdminPanel = () => {
     const space = {
       id: `space-${Date.now()}`,
       ...newSpace,
-      images: ['/api/placeholder/800/600'],
+      images: ['https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&h=600&fit=crop'],
       amenities: newSpace.amenities.split(',').map(a => a.trim()).filter(Boolean),
       ownerId: user?.id || '',
       ownerName: user?.name || '',
@@ -202,16 +202,16 @@ const AdminPanel = () => {
                   />
                 </div>
                 
-                <div className="space-y-2">
-                  <Label htmlFor="hourlyRate">Hourly Rate ($)</Label>
-                  <Input
-                    id="hourlyRate"
-                    type="number"
-                    value={newSpace.hourlyRate}
-                    onChange={(e) => setNewSpace({ ...newSpace, hourlyRate: Number(e.target.value) })}
-                    placeholder="50"
-                  />
-                </div>
+                 <div className="space-y-2">
+                   <Label htmlFor="hourlyRate">Hourly Rate (KSH)</Label>
+                   <Input
+                     id="hourlyRate"
+                     type="number"
+                     value={newSpace.hourlyRate}
+                     onChange={(e) => setNewSpace({ ...newSpace, hourlyRate: Number(e.target.value) })}
+                     placeholder="5000"
+                   />
+                 </div>
                 
                 <div className="space-y-2">
                   <Label htmlFor="capacity">Capacity</Label>
@@ -284,7 +284,7 @@ const AdminPanel = () => {
                   <DollarSign className="h-6 w-6 text-accent" />
                 </div>
                 <div>
-                  <p className="text-2xl font-bold">${stats.totalRevenue.toFixed(0)}</p>
+                  <p className="text-2xl font-bold">KSH {stats.totalRevenue.toLocaleString()}</p>
                   <p className="text-sm text-muted-foreground">Total Revenue</p>
                 </div>
               </div>
@@ -357,7 +357,7 @@ const AdminPanel = () => {
                         <TableCell className="max-w-xs truncate">
                           {space.location}
                         </TableCell>
-                        <TableCell>${space.hourlyRate}</TableCell>
+                        <TableCell>KSH {space.hourlyRate.toLocaleString()}</TableCell>
                         <TableCell>{space.capacity} people</TableCell>
                         <TableCell>
                           <div className="flex space-x-2">
@@ -422,7 +422,7 @@ const AdminPanel = () => {
                             {booking.status}
                           </Badge>
                         </TableCell>
-                        <TableCell>${booking.totalCost}</TableCell>
+                        <TableCell>KSH {booking.totalCost.toLocaleString()}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
