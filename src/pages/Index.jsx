@@ -68,10 +68,10 @@ const Index = () => {
     }
 
     // Price range filter
-    filtered = filtered.filter(space => 
-      space.hourlyRate >= filters.priceRange[0] && 
-      space.hourlyRate <= filters.priceRange[1]
-    );
+    filtered = filtered.filter(space => {
+      const price = space?.hourlyRate || space?.hourly_rate || 0;
+      return price >= filters.priceRange[0] && price <= filters.priceRange[1];
+    });
 
     setFilteredSpaces(filtered);
   }, [spaces, searchQuery, filters]);
@@ -104,7 +104,7 @@ const Index = () => {
             </h3>
             <div className="text-right">
               <div className="text-lg font-bold text-primary">
-                KSH {space.hourlyRate.toLocaleString()}
+                KSH {(space?.hourlyRate || space?.hourly_rate || 0).toLocaleString()}
                 <span className="text-sm font-normal text-muted-foreground">/hr</span>
               </div>
             </div>
