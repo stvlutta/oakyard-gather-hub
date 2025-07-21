@@ -14,6 +14,89 @@ export type Database = {
   }
   public: {
     Tables: {
+      meeting_participants: {
+        Row: {
+          id: string
+          is_active: boolean | null
+          joined_at: string
+          left_at: string | null
+          meeting_id: string | null
+          participant_email: string | null
+          participant_name: string
+        }
+        Insert: {
+          id?: string
+          is_active?: boolean | null
+          joined_at?: string
+          left_at?: string | null
+          meeting_id?: string | null
+          participant_email?: string | null
+          participant_name: string
+        }
+        Update: {
+          id?: string
+          is_active?: boolean | null
+          joined_at?: string
+          left_at?: string | null
+          meeting_id?: string | null
+          participant_email?: string | null
+          participant_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meeting_participants_meeting_id_fkey"
+            columns: ["meeting_id"]
+            isOneToOne: false
+            referencedRelation: "meetings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      meetings: {
+        Row: {
+          created_at: string
+          description: string | null
+          duration_minutes: number
+          host_id: string | null
+          host_name: string | null
+          id: string
+          is_active: boolean | null
+          max_participants: number | null
+          meeting_code: string
+          scheduled_at: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          duration_minutes?: number
+          host_id?: string | null
+          host_name?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_participants?: number | null
+          meeting_code: string
+          scheduled_at: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          duration_minutes?: number
+          host_id?: string | null
+          host_name?: string | null
+          id?: string
+          is_active?: boolean | null
+          max_participants?: number | null
+          meeting_code?: string
+          scheduled_at?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
