@@ -12,7 +12,7 @@ import { toast } from 'sonner';
 
 const Login = () => {
   const navigate = useNavigate();
-  const { isAuthenticated, login, loading: authLoading } = useAuth();
+  const { isAuthenticated, login, loginWithGoogle, loading: authLoading } = useAuth();
   const hasNavigated = useRef(false);
   
   const [email, setEmail] = useState('');
@@ -49,8 +49,10 @@ const Login = () => {
   const handleGoogleLogin = async () => {
     setLoading(true);
     try {
-      // Google login not implemented yet
-      setError('Google login not implemented yet');
+      const result = await loginWithGoogle();
+      if (result.success) {
+        navigate('/dashboard');
+      }
     } catch (err) {
       setError('Google login failed');
     } finally {
