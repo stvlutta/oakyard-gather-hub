@@ -12,7 +12,7 @@ import { toast } from 'sonner';
 
 const Register = () => {
   const navigate = useNavigate();
-  const { isAuthenticated, register, loading: authLoading } = useAuth();
+  const { isAuthenticated, register, loginWithGoogle, loading: authLoading } = useAuth();
   const hasNavigated = useRef(false);
   
   const [formData, setFormData] = useState({
@@ -62,10 +62,7 @@ const Register = () => {
         name: formData.name,
       });
       if (result.success) {
-        toast({
-          title: "Welcome to Oakyard!",
-          description: "Your account has been created successfully.",
-        });
+        toast.success("Welcome to Oakyard! Your account has been created successfully.");
         navigate('/dashboard');
       }
     } catch (err) {
@@ -80,10 +77,7 @@ const Register = () => {
     try {
       const result = await loginWithGoogle();
       if (result.success) {
-        toast({
-          title: "Welcome to Oakyard!",
-          description: "Your account has been created with Google.",
-        });
+        toast.success("Welcome to Oakyard! Your account has been created with Google.");
         navigate('/dashboard');
       }
     } catch (err) {
