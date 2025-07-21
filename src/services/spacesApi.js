@@ -20,7 +20,25 @@ export const spacesApi = {
         throw error;
       }
       
-      return data || [];
+      // Convert snake_case to camelCase for frontend
+      const spacesData = (data || []).map(space => ({
+        id: space.id,
+        title: space.title,
+        description: space.description,
+        location: space.location,
+        hourlyRate: space.hourly_rate, // Convert snake_case to camelCase
+        capacity: space.capacity,
+        category: space.category,
+        amenities: space.amenities || [],
+        images: space.images || [],
+        ownerId: space.owner_id,
+        ownerName: space.owner_name,
+        rating: space.rating,
+        reviews: space.reviews,
+        availability: space.availability || {}
+      }));
+      
+      return spacesData;
     } catch (error) {
       console.error('Error fetching spaces:', error);
       // Return empty array on error to prevent UI crashes
@@ -60,7 +78,7 @@ export const spacesApi = {
         category: spaceData.category,
         amenities: spaceData.amenities,
         images: spaceData.images,
-        owner_id: 'admin-user', // Mock owner for now
+        owner_id: null, // Set to null since we don't have proper auth integration yet
         owner_name: 'Admin User',
         rating: 5.0,
         reviews: 0,
