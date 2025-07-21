@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { useAuth } from '@/contexts/AuthContext';
 import { setSpaces, setSearchQuery, setFilters } from '../store/slices/spacesSlice';
 import { mockSpaces } from '../data/mockData';
 import { Button } from '@/components/ui/button';
@@ -33,7 +32,6 @@ const Index = () => {
   const dispatch = useDispatch();
   const { spaces, searchQuery, filters } = useSelector((state) => state.spaces);
   const [filteredSpaces, setFilteredSpaces] = useState(spaces);
-  const { session } = useAuth();
 
   useEffect(() => {
     dispatch(setSpaces(mockSpaces));
@@ -199,16 +197,6 @@ const Index = () => {
                   Search
                 </Button>
               </div>
-              {!session && (
-                <div className="mt-4 text-center">
-                  <p className="text-sm text-muted-foreground mb-2">
-                    Ready to book a space?
-                  </p>
-                  <Button variant="outline" asChild>
-                    <Link to="/auth">Sign up to get started</Link>
-                  </Button>
-                </div>
-               )}
             </div>
           </div>
         </div>
