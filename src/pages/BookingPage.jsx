@@ -16,8 +16,9 @@ import Calendar from 'react-calendar';
 import TimePicker from 'react-time-picker';
 import 'react-calendar/dist/Calendar.css';
 import 'react-time-picker/dist/TimePicker.css';
-import api from '../services/api'; // Make sure this is your API helper
+import api from '../services/api';
 import { spacesApi } from '../services/spacesApi';
+import PaymentMethodDialog from '../components/PaymentMethodDialog';
 
 const BookingPage = () => {
   const { spaceId } = useParams();
@@ -31,6 +32,7 @@ const BookingPage = () => {
   const [endTime, setEndTime] = useState('10:00');
   const [totalHours, setTotalHours] = useState(1);
   const [totalCost, setTotalCost] = useState(0);
+  const [showPaymentDialog, setShowPaymentDialog] = useState(false);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -81,6 +83,11 @@ const BookingPage = () => {
       return;
     }
 
+    // Show payment method selection dialog
+    setShowPaymentDialog(true);
+  };
+
+  const handlePaymentMethodSelected = async (paymentMethod) => {
     const startDateTime = new Date(selectedDate);
     startDateTime.setHours(parseInt(startTime.split(':')[0]), parseInt(startTime.split(':')[1]));
     
@@ -99,6 +106,7 @@ const BookingPage = () => {
       totalCost,
       status: 'pending',
       paymentStatus: 'pending',
+      paymentMethod: paymentMethod,
       invoice: {
         id: `INV-${Date.now()}`,
         subtotal: totalCost,
@@ -109,19 +117,34 @@ const BookingPage = () => {
       createdAt: new Date().toISOString(),
     };
 
-    // Call backend to create Stripe Checkout Session
+    if (paymentMethod === 'mpesa') {
+      // For M-Pesa, we'll show a placeholder for now
+      toast.info("M-Pesa integration coming soon! Redirecting to card payment for now.");
+      // Fallback to card payment
+      await processCardPayment(newBooking);
+    } else {
+      // Process card payment
+      await processCardPayment(newBooking);
+    }
+  };
+
+  const processCardPayment = async (booking) => {
     try {
       const response = await api.post('/bookings/create-checkout-session', {
-        amount: totalCost * 1.1, // include tax
+        amount: booking.invoice.total,
         currency: 'kes',
         metadata: {
-          bookingId: newBooking.id,
+          bookingId: booking.id,
           userId: user.id,
           spaceId: currentSpace.id,
+          paymentMethod: booking.paymentMethod || 'card',
         },
       });
+      
       if (response.data && response.data.checkout_url) {
-        window.location.href = response.data.checkout_url;
+        // Open Stripe checkout in a new tab
+        window.open(response.data.checkout_url, '_blank');
+        toast.success("Payment window opened. Complete your payment to confirm the booking.");
       } else {
         toast.error('Failed to initiate payment.');
       }
@@ -309,6 +332,13 @@ const BookingPage = () => {
             </Card>
           </div>
         </div>
+
+        <PaymentMethodDialog
+          isOpen={showPaymentDialog}
+          onClose={() => setShowPaymentDialog(false)}
+          onSelectMethod={handlePaymentMethodSelected}
+          totalAmount={finalTotal}
+        />
       </div>
     </div>
   );
