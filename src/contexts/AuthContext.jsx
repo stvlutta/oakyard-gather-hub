@@ -21,11 +21,43 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
         console.log('Auth state changed:', event, session);
         setSession(session);
-        setUser(session?.user ?? null);
-        setIsAuthenticated(!!session?.user);
+        
+        if (session?.user) {
+          // Fetch user profile with role information
+          try {
+            const { data: profile, error } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('user_id', session.user.id)
+              .single();
+
+            if (error) {
+              console.error('Error fetching profile:', error);
+            }
+
+            // Combine auth user with profile data
+            const fullUser = {
+              ...session.user,
+              ...profile,
+              name: profile?.full_name || session.user.user_metadata?.full_name,
+              avatar: profile?.avatar_url || session.user.user_metadata?.avatar_url,
+              role: profile?.role || 'user'
+            };
+
+            setUser(fullUser);
+            setIsAuthenticated(true);
+          } catch (error) {
+            console.error('Error fetching user profile:', error);
+            setUser(session.user);
+            setIsAuthenticated(true);
+          }
+        } else {
+          setUser(null);
+          setIsAuthenticated(false);
+        }
         
         if (event === 'SIGNED_OUT') {
           setUser(null);
@@ -36,10 +68,43 @@ export const AuthProvider = ({ children }) => {
     );
 
     // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
-      setUser(session?.user ?? null);
-      setIsAuthenticated(!!session?.user);
+      
+      if (session?.user) {
+        // Fetch user profile with role information
+        try {
+          const { data: profile, error } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('user_id', session.user.id)
+            .single();
+
+          if (error) {
+            console.error('Error fetching profile:', error);
+          }
+
+          // Combine auth user with profile data
+          const fullUser = {
+            ...session.user,
+            ...profile,
+            name: profile?.full_name || session.user.user_metadata?.full_name,
+            avatar: profile?.avatar_url || session.user.user_metadata?.avatar_url,
+            role: profile?.role || 'user'
+          };
+
+          setUser(fullUser);
+          setIsAuthenticated(true);
+        } catch (error) {
+          console.error('Error fetching user profile:', error);
+          setUser(session.user);
+          setIsAuthenticated(true);
+        }
+      } else {
+        setUser(null);
+        setIsAuthenticated(false);
+      }
+      
       setLoading(false);
     });
 
