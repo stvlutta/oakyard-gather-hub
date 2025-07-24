@@ -19,6 +19,8 @@ import 'react-time-picker/dist/TimePicker.css';
 import api from '../services/api';
 import { spacesApi } from '../services/spacesApi';
 import PaymentMethodDialog from '../components/PaymentMethodDialog';
+import MpesaPaymentDialog from '../components/MpesaPaymentDialog';
+import ComingSoonDialog from '../components/ComingSoonDialog';
 
 const BookingPage = () => {
   const { spaceId } = useParams();
@@ -33,6 +35,8 @@ const BookingPage = () => {
   const [totalHours, setTotalHours] = useState(1);
   const [totalCost, setTotalCost] = useState(0);
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
+  const [showMpesaDialog, setShowMpesaDialog] = useState(false);
+  const [showComingSoonDialog, setShowComingSoonDialog] = useState(false);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -88,43 +92,10 @@ const BookingPage = () => {
   };
 
   const handlePaymentMethodSelected = async (paymentMethod) => {
-    const startDateTime = new Date(selectedDate);
-    startDateTime.setHours(parseInt(startTime.split(':')[0]), parseInt(startTime.split(':')[1]));
-    
-    const endDateTime = new Date(selectedDate);
-    endDateTime.setHours(parseInt(endTime.split(':')[0]), parseInt(endTime.split(':')[1]));
-
-    const newBooking = {
-      id: `booking-${Date.now()}`,
-      spaceId: currentSpace.id,
-      spaceName: currentSpace.title,
-      userId: user.id,
-      userName: user.name,
-      startTime: startDateTime.toISOString(),
-      endTime: endDateTime.toISOString(),
-      totalHours,
-      totalCost,
-      status: 'pending',
-      paymentStatus: 'pending',
-      paymentMethod: paymentMethod,
-      invoice: {
-        id: `INV-${Date.now()}`,
-        subtotal: totalCost,
-        tax: totalCost * 0.1,
-        total: totalCost * 1.1,
-        issuedAt: new Date().toISOString(),
-      },
-      createdAt: new Date().toISOString(),
-    };
-
     if (paymentMethod === 'mpesa') {
-      // For M-Pesa, we'll show a placeholder for now
-      toast.info("M-Pesa integration coming soon! Redirecting to card payment for now.");
-      // Fallback to card payment
-      await processCardPayment(newBooking);
+      setShowMpesaDialog(true);
     } else {
-      // Process card payment
-      await processCardPayment(newBooking);
+      setShowComingSoonDialog(true);
     }
   };
 
@@ -338,6 +309,17 @@ const BookingPage = () => {
           onClose={() => setShowPaymentDialog(false)}
           onSelectMethod={handlePaymentMethodSelected}
           totalAmount={finalTotal}
+        />
+
+        <MpesaPaymentDialog
+          isOpen={showMpesaDialog}
+          onClose={() => setShowMpesaDialog(false)}
+          totalAmount={finalTotal}
+        />
+
+        <ComingSoonDialog
+          isOpen={showComingSoonDialog}
+          onClose={() => setShowComingSoonDialog(false)}
         />
       </div>
     </div>

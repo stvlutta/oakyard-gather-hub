@@ -44,7 +44,9 @@ import {
   Edit, 
   Trash2,
   DollarSign,
-  TrendingUp
+  TrendingUp,
+  Upload,
+  X
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -65,7 +67,9 @@ const AdminPanel = () => {
     capacity: 1,
     category: 'meeting-room',
     amenities: '',
+    images: [],
   });
+  const [uploadedImages, setUploadedImages] = useState([]);
 
   useEffect(() => {
     if (!isAuthenticated || user?.role !== 'admin') {
@@ -101,7 +105,7 @@ const AdminPanel = () => {
       const spaceData = {
         ...newSpace,
         amenities: newSpace.amenities.split(',').map(a => a.trim()).filter(Boolean),
-        images: ['https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&h=600&fit=crop'],
+        images: uploadedImages.length > 0 ? uploadedImages : ['https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&h=600&fit=crop'],
       };
 
       const createdSpace = await spacesApi.createSpace(spaceData);
@@ -116,7 +120,9 @@ const AdminPanel = () => {
         capacity: 1,
         category: 'meeting-room',
         amenities: '',
+        images: [],
       });
+      setUploadedImages([]);
 
       toast.success("Space added successfully!");
     } catch (error) {
@@ -134,6 +140,23 @@ const AdminPanel = () => {
       console.error('Error deleting space:', error);
       toast.error("Failed to delete space. Please try again.");
     }
+  };
+
+  const handleImageUpload = (e) => {
+    const files = Array.from(e.target.files);
+    files.forEach(file => {
+      if (file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          setUploadedImages(prev => [...prev, e.target.result]);
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+  };
+
+  const removeImage = (index) => {
+    setUploadedImages(prev => prev.filter((_, i) => i !== index));
   };
 
   const stats = {
@@ -253,6 +276,52 @@ const AdminPanel = () => {
                     onChange={(e) => setNewSpace({ ...newSpace, amenities: e.target.value })}
                     placeholder="WiFi, Projector, Coffee Machine"
                   />
+                </div>
+
+                <div className="col-span-2 space-y-2">
+                  <Label htmlFor="images">Space Images</Label>
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-center w-full">
+                      <label htmlFor="image-upload" className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
+                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                          <Upload className="w-8 h-8 mb-3 text-gray-400" />
+                          <p className="mb-2 text-sm text-gray-500">
+                            <span className="font-semibold">Click to upload</span> or drag and drop
+                          </p>
+                          <p className="text-xs text-gray-500">PNG, JPG, JPEG (MAX. 10MB)</p>
+                        </div>
+                        <input 
+                          id="image-upload" 
+                          type="file" 
+                          className="hidden" 
+                          multiple 
+                          accept="image/*"
+                          onChange={handleImageUpload}
+                        />
+                      </label>
+                    </div>
+                    
+                    {uploadedImages.length > 0 && (
+                      <div className="grid grid-cols-4 gap-2">
+                        {uploadedImages.map((image, index) => (
+                          <div key={index} className="relative">
+                            <img 
+                              src={image} 
+                              alt={`Upload ${index + 1}`} 
+                              className="w-full h-20 object-cover rounded border"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => removeImage(index)}
+                              className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                            >
+                              <X className="w-3 h-3" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
               
