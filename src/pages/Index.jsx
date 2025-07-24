@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { setSpaces, setSearchQuery, setFilters, setLoading } from '../store/slices/spacesSlice';
+import { useRealtimeSpaces } from '../hooks/useRealtimeSpaces';
 import { spacesApi } from '../services/spacesApi';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -32,6 +33,9 @@ const Index = () => {
   const dispatch = useDispatch();
   const { spaces, searchQuery, filters, loading } = useSelector((state) => state.spaces);
   const [filteredSpaces, setFilteredSpaces] = useState(spaces);
+  
+  // Enable real-time updates for spaces
+  useRealtimeSpaces();
 
   useEffect(() => {
     const loadSpaces = async () => {

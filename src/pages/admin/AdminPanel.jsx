@@ -3,6 +3,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { setSpaces, addSpace, updateSpace, deleteSpace, setLoading } from '../../store/slices/spacesSlice';
+import { useRealtimeSpaces } from '../../hooks/useRealtimeSpaces';
 import { setBookings } from '../../store/slices/bookingsSlice';
 import { mockBookings, mockUsers } from '../../data/mockData';
 import { spacesApi } from '../../services/spacesApi';
@@ -56,6 +57,9 @@ const AdminPanel = () => {
   const { user, isAuthenticated } = useAuth();
   const { spaces, loading } = useSelector((state) => state.spaces);
   const { bookings } = useSelector((state) => state.bookings);
+
+  // Enable real-time updates for spaces
+  useRealtimeSpaces();
 
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingSpace, setEditingSpace] = useState(null);
