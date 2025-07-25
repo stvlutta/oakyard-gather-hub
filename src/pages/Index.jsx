@@ -30,29 +30,35 @@ import {
 import heroImage from '../assets/hero-community.jpg';
 
 const Index = () => {
+  console.log('Index component rendering');
   const dispatch = useDispatch();
   const { spaces, searchQuery, filters, loading } = useSelector((state) => state.spaces);
   const [filteredSpaces, setFilteredSpaces] = useState(spaces);
+  
+  console.log('Index component state:', { spaces, searchQuery, filters, loading });
   
   // Enable real-time updates for spaces
   useRealtimeSpaces();
 
   useEffect(() => {
     const loadSpaces = async () => {
-      try {
-        dispatch(setLoading(true));
-        const spacesData = await spacesApi.getSpaces();
-        dispatch(setSpaces(spacesData || []));
-      } catch (error) {
-        console.error('Failed to load spaces:', error);
-        dispatch(setSpaces([]));
-      } finally {
-        dispatch(setLoading(false));
+      // Only load if we don't have spaces already (to prevent overriding real-time updates)
+      if (spaces.length === 0) {
+        try {
+          dispatch(setLoading(true));
+          const spacesData = await spacesApi.getSpaces();
+          dispatch(setSpaces(spacesData || []));
+        } catch (error) {
+          console.error('Failed to load spaces:', error);
+          dispatch(setSpaces([]));
+        } finally {
+          dispatch(setLoading(false));
+        }
       }
     };
 
     loadSpaces();
-  }, [dispatch]);
+  }, [dispatch, spaces.length]);
 
   useEffect(() => {
     let filtered = spaces;
