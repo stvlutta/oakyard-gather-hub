@@ -4,7 +4,14 @@ import { supabase } from '@/integrations/supabase/client';
 import { addSpace, updateSpace, deleteSpace } from '../store/slices/spacesSlice';
 
 export const useRealtimeSpaces = () => {
-  const dispatch = useDispatch();
+  let dispatch;
+  
+  try {
+    dispatch = useDispatch();
+  } catch (error) {
+    console.error('Redux context not available:', error);
+    return null;
+  }
 
   useEffect(() => {
     // Create a channel for real-time updates
