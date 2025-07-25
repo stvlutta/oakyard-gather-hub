@@ -30,12 +30,9 @@ import {
 import heroImage from '../assets/hero-community.jpg';
 
 const Index = () => {
-  console.log('Index component rendering');
   const dispatch = useDispatch();
   const { spaces, searchQuery, filters, loading } = useSelector((state) => state.spaces);
   const [filteredSpaces, setFilteredSpaces] = useState(spaces);
-  
-  console.log('Index component state:', { spaces, searchQuery, filters, loading });
   
   // Enable real-time updates for spaces
   useRealtimeSpaces();
