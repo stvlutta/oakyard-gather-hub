@@ -90,6 +90,15 @@ const Login = () => {
               </Alert>
             )}
 
+            {/* Demo Credentials */}
+            <Alert>
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>
+                <strong>Demo Credentials:</strong><br />
+                Email: admin@oakyard.com<br />
+                Password: admin123
+              </AlertDescription>
+            </Alert>
 
             <form onSubmit={handleLogin} className="space-y-4">
               <div className="space-y-2">
