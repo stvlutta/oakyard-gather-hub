@@ -17,48 +17,43 @@ export const AuthProvider = ({ children }) => {
   const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  // Helper function to fetch user profile
-  const fetchUserProfile = async (userId) => {
-    try {
-      const { data: profile, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', userId)
-        .single();
-
-      if (error) {
-        console.error('Error fetching profile:', error);
-        return;
-      }
-
-      // Update user with profile data
-      setUser(prevUser => ({
-        ...prevUser,
-        ...profile,
-        name: profile?.full_name || prevUser?.user_metadata?.full_name,
-        avatar: profile?.avatar_url || prevUser?.user_metadata?.avatar_url,
-        role: profile?.role || 'user'
-      }));
-    } catch (error) {
-      console.error('Error fetching user profile:', error);
-    }
-  };
 
   useEffect(() => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
         console.log('Auth state changed:', event, session);
         setSession(session);
         
         if (session?.user) {
-          setUser(session.user);
-          setIsAuthenticated(true);
-          
-          // Defer profile fetching to prevent deadlock
-          setTimeout(() => {
-            fetchUserProfile(session.user.id);
-          }, 0);
+          // Fetch user profile with role information
+          try {
+            const { data: profile, error } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('user_id', session.user.id)
+              .single();
+
+            if (error) {
+              console.error('Error fetching profile:', error);
+            }
+
+            // Combine auth user with profile data
+            const fullUser = {
+              ...session.user,
+              ...profile,
+              name: profile?.full_name || session.user.user_metadata?.full_name,
+              avatar: profile?.avatar_url || session.user.user_metadata?.avatar_url,
+              role: profile?.role || 'user'
+            };
+
+            setUser(fullUser);
+            setIsAuthenticated(true);
+          } catch (error) {
+            console.error('Error fetching user profile:', error);
+            setUser(session.user);
+            setIsAuthenticated(true);
+          }
         } else {
           setUser(null);
           setIsAuthenticated(false);
@@ -73,17 +68,38 @@ export const AuthProvider = ({ children }) => {
     );
 
     // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       
       if (session?.user) {
-        setUser(session.user);
-        setIsAuthenticated(true);
-        
-        // Defer profile fetching to prevent deadlock
-        setTimeout(() => {
-          fetchUserProfile(session.user.id);
-        }, 0);
+        // Fetch user profile with role information
+        try {
+          const { data: profile, error } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('user_id', session.user.id)
+            .single();
+
+          if (error) {
+            console.error('Error fetching profile:', error);
+          }
+
+          // Combine auth user with profile data
+          const fullUser = {
+            ...session.user,
+            ...profile,
+            name: profile?.full_name || session.user.user_metadata?.full_name,
+            avatar: profile?.avatar_url || session.user.user_metadata?.avatar_url,
+            role: profile?.role || 'user'
+          };
+
+          setUser(fullUser);
+          setIsAuthenticated(true);
+        } catch (error) {
+          console.error('Error fetching user profile:', error);
+          setUser(session.user);
+          setIsAuthenticated(true);
+        }
       } else {
         setUser(null);
         setIsAuthenticated(false);
