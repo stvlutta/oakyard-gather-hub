@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { cleanupAuthState, forceAuthRefresh } from '@/utils/authCleanup';
 
 const AuthContext = createContext();
 
@@ -25,41 +26,38 @@ export const AuthProvider = ({ children }) => {
         console.log('Auth state changed:', event, session);
         setSession(session);
         
-        if (session?.user) {
-          // Fetch user profile with role information
-          try {
-            const { data: profile, error } = await supabase
-              .from('profiles')
-              .select('*')
-              .eq('user_id', session.user.id)
-              .single();
+        if (event === 'SIGNED_IN' && session?.user) {
+          // Defer data fetching to prevent deadlocks
+          setTimeout(async () => {
+            try {
+              const { data: profile, error } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('user_id', session.user.id)
+                .single();
 
-            if (error) {
-              console.error('Error fetching profile:', error);
+              if (error && error.code !== 'PGRST116') {
+                console.error('Error fetching profile:', error);
+              }
+
+              // Combine auth user with profile data
+              const fullUser = {
+                ...session.user,
+                ...profile,
+                name: profile?.full_name || session.user.user_metadata?.full_name,
+                avatar: profile?.avatar_url || session.user.user_metadata?.avatar_url,
+                role: profile?.role || 'user'
+              };
+
+              setUser(fullUser);
+              setIsAuthenticated(true);
+            } catch (error) {
+              console.error('Error fetching user profile:', error);
+              setUser(session.user);
+              setIsAuthenticated(true);
             }
-
-            // Combine auth user with profile data
-            const fullUser = {
-              ...session.user,
-              ...profile,
-              name: profile?.full_name || session.user.user_metadata?.full_name,
-              avatar: profile?.avatar_url || session.user.user_metadata?.avatar_url,
-              role: profile?.role || 'user'
-            };
-
-            setUser(fullUser);
-            setIsAuthenticated(true);
-          } catch (error) {
-            console.error('Error fetching user profile:', error);
-            setUser(session.user);
-            setIsAuthenticated(true);
-          }
-        } else {
-          setUser(null);
-          setIsAuthenticated(false);
-        }
-        
-        if (event === 'SIGNED_OUT') {
+          }, 0);
+        } else if (event === 'SIGNED_OUT' || !session) {
           setUser(null);
           setSession(null);
           setIsAuthenticated(false);
@@ -72,7 +70,6 @@ export const AuthProvider = ({ children }) => {
       setSession(session);
       
       if (session?.user) {
-        // Fetch user profile with role information
         try {
           const { data: profile, error } = await supabase
             .from('profiles')
@@ -80,7 +77,7 @@ export const AuthProvider = ({ children }) => {
             .eq('user_id', session.user.id)
             .single();
 
-          if (error) {
+          if (error && error.code !== 'PGRST116') {
             console.error('Error fetching profile:', error);
           }
 
@@ -113,6 +110,16 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (credentials) => {
     try {
+      // Clean up existing state first
+      cleanupAuthState();
+      
+      // Attempt global sign out to clear any existing sessions
+      try {
+        await supabase.auth.signOut({ scope: 'global' });
+      } catch (err) {
+        // Continue even if this fails
+      }
+
       const { data, error } = await supabase.auth.signInWithPassword({
         email: credentials.email,
         password: credentials.password,
@@ -121,6 +128,12 @@ export const AuthProvider = ({ children }) => {
       if (error) throw error;
 
       toast.success('Login successful!');
+      
+      // Force page refresh for clean state
+      setTimeout(() => {
+        window.location.href = '/dashboard';
+      }, 100);
+      
       return { success: true, data };
     } catch (error) {
       console.error('Login error:', error);
@@ -174,13 +187,26 @@ export const AuthProvider = ({ children }) => {
 
   const logout = async () => {
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
+      // Clean up auth state first
+      cleanupAuthState();
+      
+      // Attempt global sign out
+      try {
+        await supabase.auth.signOut({ scope: 'global' });
+      } catch (err) {
+        // Ignore errors
+      }
       
       toast.success('Logged out successfully');
+      
+      // Force page reload for clean state
+      window.location.href = '/';
     } catch (error) {
       console.error('Logout error:', error);
       toast.error('Failed to log out');
+      // Force cleanup and redirect even on error
+      cleanupAuthState();
+      window.location.href = '/';
     }
   };
 

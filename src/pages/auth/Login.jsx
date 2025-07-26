@@ -9,6 +9,7 @@ import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { MapPin, Mail, Lock, Chrome, AlertCircle } from 'lucide-react';
 import { toast } from 'sonner';
+import ForceLogout from '@/components/ForceLogout';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -23,9 +24,10 @@ const Login = () => {
   useEffect(() => {
     if (isAuthenticated && !authLoading && !hasNavigated.current) {
       hasNavigated.current = true;
-      navigate('/dashboard');
+      // Use window.location for a clean redirect
+      window.location.href = '/dashboard';
     }
-  }, [isAuthenticated, authLoading, navigate]);
+  }, [isAuthenticated, authLoading]);
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -34,14 +36,13 @@ const Login = () => {
 
     try {
       const result = await login({ email, password });
-      if (result.success) {
-        navigate('/dashboard');
-      } else {
+      if (!result.success) {
         setError(result.error || 'Login failed');
+        setLoading(false);
       }
+      // Don't set loading to false here as we're redirecting
     } catch (err) {
       setError('An unexpected error occurred');
-    } finally {
       setLoading(false);
     }
   };
@@ -50,18 +51,19 @@ const Login = () => {
     setLoading(true);
     try {
       const result = await loginWithGoogle();
-      if (result.success) {
-        navigate('/dashboard');
+      if (!result.success) {
+        setError('Google login failed');
+        setLoading(false);
       }
     } catch (err) {
       setError('Google login failed');
-    } finally {
       setLoading(false);
     }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-hero py-12 px-4">
+      <ForceLogout />
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center space-x-2 mb-4">
