@@ -31,16 +31,32 @@ import heroImage from '../assets/hero-community.jpg';
 
 const Index = () => {
   console.log('Index component rendering');
-  const dispatch = useDispatch();
-  const { spaces, searchQuery, filters, loading } = useSelector((state) => state.spaces);
+  
+  let dispatch, reduxState;
+  let hasRedux = true;
+  
+  try {
+    dispatch = useDispatch();
+    reduxState = useSelector((state) => state.spaces);
+  } catch (error) {
+    console.error('Redux not available:', error);
+    hasRedux = false;
+    // Fallback to local state if Redux is not available
+    dispatch = () => {};
+    reduxState = { spaces: [], searchQuery: '', filters: { priceRange: [0, 100000] }, loading: false };
+  }
+  
+  const { spaces, searchQuery, filters, loading } = reduxState;
   const [filteredSpaces, setFilteredSpaces] = useState(spaces);
   
   console.log('Index component state:', { spaces, searchQuery, filters, loading });
   
-  // Enable real-time updates for spaces
+  // Always call the hook, but it will handle the dispatch check internally
   useRealtimeSpaces();
 
   useEffect(() => {
+    if (!hasRedux) return;
+    
     const loadSpaces = async () => {
       try {
         dispatch(setLoading(true));
@@ -55,7 +71,7 @@ const Index = () => {
     };
 
     loadSpaces();
-  }, [dispatch]);
+  }, [dispatch, hasRedux]);
 
   useEffect(() => {
     let filtered = spaces;
@@ -190,17 +206,17 @@ const Index = () => {
               <div className="flex flex-col md:flex-row gap-4">
                 <div className="flex-1 relative">
                   <Search className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
-                  <Input
-                    placeholder="Search spaces, locations, or activities..."
-                    value={searchQuery}
-                    onChange={(e) => dispatch(setSearchQuery(e.target.value))}
-                    className="pl-10 h-12"
-                  />
+                   <Input
+                     placeholder="Search spaces, locations, or activities..."
+                     value={searchQuery}
+                     onChange={(e) => hasRedux && dispatch(setSearchQuery(e.target.value))}
+                     className="pl-10 h-12"
+                   />
                 </div>
-                <Select
-                  value={filters.category}
-                  onValueChange={(value) => dispatch(setFilters({ category: value }))}
-                >
+                 <Select
+                   value={filters.category}
+                   onValueChange={(value) => hasRedux && dispatch(setFilters({ category: value }))}
+                 >
                   <SelectTrigger className="md:w-48 h-12">
                     <SelectValue placeholder="Any Category" />
                   </SelectTrigger>
@@ -303,10 +319,12 @@ const Index = () => {
               <p className="text-muted-foreground mb-4">
                 Try adjusting your search criteria or browse all spaces.
               </p>
-              <Button onClick={() => {
-                dispatch(setSearchQuery(''));
-                dispatch(setFilters({ category: '', priceRange: [0, 100000], location: '' }));
-              }}>
+               <Button onClick={() => {
+                 if (hasRedux) {
+                   dispatch(setSearchQuery(''));
+                   dispatch(setFilters({ category: '', priceRange: [0, 100000], location: '' }));
+                 }
+               }}>
                 Clear Filters
               </Button>
             </div>

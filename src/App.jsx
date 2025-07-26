@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { store } from "./store/store";
 import { AuthProvider } from "./contexts/AuthContext";
+import ErrorBoundary from "./components/ErrorBoundary";
 import { Header } from "./components/layout/Header";
 import { Footer } from "./components/layout/Footer";
 import Index from "./pages/Index";
@@ -80,18 +81,20 @@ const AppContent = () => {
 };
 
 const App = () => (
-  <Provider store={store}>
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <TooltipProvider>
-          <Sonner />
-          <BrowserRouter>
-            <AppContent />
-          </BrowserRouter>
-        </TooltipProvider>
-      </AuthProvider>
-    </QueryClientProvider>
-  </Provider>
+  <ErrorBoundary>
+    <Provider store={store}>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <TooltipProvider>
+            <Sonner />
+            <BrowserRouter>
+              <AppContent />
+            </BrowserRouter>
+          </TooltipProvider>
+        </AuthProvider>
+      </QueryClientProvider>
+    </Provider>
+  </ErrorBoundary>
 );
 
 export default App;
