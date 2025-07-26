@@ -42,23 +42,20 @@ const Index = () => {
 
   useEffect(() => {
     const loadSpaces = async () => {
-      // Only load if we don't have spaces already (to prevent overriding real-time updates)
-      if (spaces.length === 0) {
-        try {
-          dispatch(setLoading(true));
-          const spacesData = await spacesApi.getSpaces();
-          dispatch(setSpaces(spacesData || []));
-        } catch (error) {
-          console.error('Failed to load spaces:', error);
-          dispatch(setSpaces([]));
-        } finally {
-          dispatch(setLoading(false));
-        }
+      try {
+        dispatch(setLoading(true));
+        const spacesData = await spacesApi.getSpaces();
+        dispatch(setSpaces(spacesData || []));
+      } catch (error) {
+        console.error('Failed to load spaces:', error);
+        dispatch(setSpaces([]));
+      } finally {
+        dispatch(setLoading(false));
       }
     };
 
     loadSpaces();
-  }, [dispatch, spaces.length]);
+  }, [dispatch]);
 
   useEffect(() => {
     let filtered = spaces;

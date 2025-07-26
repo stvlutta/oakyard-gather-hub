@@ -14,8 +14,7 @@ export default defineConfig(({ mode }) => ({
       // Disable TypeScript checking completely
       tsDecorators: false,
     }),
-    mode === 'development' &&
-    componentTagger(),
+    mode === 'development' && componentTagger(),
   ].filter(Boolean),
   resolve: {
     alias: {
