@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
@@ -20,6 +21,7 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [hideForceLogout, setHideForceLogout] = useState(false);
 
   useEffect(() => {
     if (isAuthenticated && !authLoading && !hasNavigated.current) {
@@ -33,37 +35,44 @@ const Login = () => {
     e.preventDefault();
     setLoading(true);
     setError('');
+    setHideForceLogout(true); // Hide ForceLogout when sign in is clicked
 
     try {
       const result = await login({ email, password });
       if (!result.success) {
         setError(result.error || 'Login failed');
         setLoading(false);
+        setHideForceLogout(false); // Show ForceLogout again if login fails
       }
       // Don't set loading to false here as we're redirecting
     } catch (err) {
       setError('An unexpected error occurred');
       setLoading(false);
+      setHideForceLogout(false); // Show ForceLogout again if login fails
     }
   };
 
   const handleGoogleLogin = async () => {
     setLoading(true);
+    setHideForceLogout(true); // Hide ForceLogout when Google sign in is clicked
+    
     try {
       const result = await loginWithGoogle();
       if (!result.success) {
         setError('Google login failed');
         setLoading(false);
+        setHideForceLogout(false); // Show ForceLogout again if login fails
       }
     } catch (err) {
       setError('Google login failed');
       setLoading(false);
+      setHideForceLogout(false); // Show ForceLogout again if login fails
     }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-hero py-12 px-4">
-      <ForceLogout />
+      {!hideForceLogout && <ForceLogout />}
       <div className="max-w-md w-full">
         <div className="text-center mb-8">
           <div className="flex items-center justify-center space-x-2 mb-4">
